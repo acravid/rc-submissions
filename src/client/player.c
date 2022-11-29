@@ -1,62 +1,12 @@
 /*
- * File: client.c
+ * File: player.c
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: player application for a remote word game
 */
 
 #include <stdio.h>
 #include <stdlib.h>
-
-/*---------------Constants---------------*/
-
-/*Maximum values: */
-#define MAX_STRING 65535
-
-/*Errors: */
-
-
-/*Commands: */
-#define START_COMMAND "start"
-#define SHORT_START_COMMAND "sg"
-#define PLAY_COMMAND "play"
-#define SHORT_PLAY_COMMAND "pl"
-#define GUESS_COMMAND "guess"
-#define SHORT_GUESS_COMMAND "gw"
-#define SCOREBOARD_COMMAND "scoreboard"
-#define SHORT_SCOREBOARD_COMMAND "sb"
-#define HINT_COMMAND "hint"
-#define SHORT_HINT_COMMAND "h"
-#define STATE_COMMAND "state"
-#define SHORT_STATE_COMMAND "st"
-#define QUIT_COMMAND "quit"
-#define EXIT_COMMAND "exit"
-
-/*Default settings: */
-#define DEFAULT_GSIP "tejo.tecnico.ulisboa.pt"
-#define DEFAULT_GSPORT 58011
-
-/*Others: */
-#define PROGRAM_IS_RUNNING 1
-#define EQUAL 0
-	
-/*---------------Function prototypes---------------*/
-
-/*Sending messages: */
-int send_start_message(char*);
-int send_play_message(char*);
-int send_guess_message(char*);
-int send_scoreboard_message();
-int send_state_message();
-int send_quit_message();
-
-/*Error handling: */
-void handle_start_error();
-void handle_play_error();
-void handle_guess_error();
-void handle_scoreboard_error();
-void handle_state_error();
-void handle_quit_error();
-void handle_exit_error();
+#include "player.h"
 
 /*---------------Global variables---------------*/
 char* GSIP = DEFAULT_GSIP;
