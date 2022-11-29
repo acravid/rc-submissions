@@ -50,13 +50,13 @@ int send_state_message();
 int send_quit_message();
 
 /*Error handling: */
-handle_start_error();
-handle_play_error();
-handle_guess_error();
-handle_scoreboard_error();
-handle_state_error();
-handle_quit_error();
-handle_exit_error();
+void handle_start_error();
+void handle_play_error();
+void handle_guess_error();
+void handle_scoreboard_error();
+void handle_state_error();
+void handle_quit_error();
+void handle_exit_error();
 
 /*---------------Global variables---------------*/
 char* GSIP = DEFAULT_GSIP;
@@ -65,10 +65,11 @@ int GSport = DEFAULT_GSPORT;
 /*---------------Functions---------------*/
 
 int main(int argc, char **argv) {
-	
-	if (argc == 2 || argc == 4 || argc > 5) {
-		printf("Invalid arguments to start the player\n");
-		exit(1);
+    
+    /*checks if the program was ran with valid arguments*/
+    if (argc == 2 || argc == 4 || argc > 5) {
+	printf("Invalid arguments to start the player\n");
+	exit(1);
     }
     if (argc >= 3) {
     	if (cmp_str(argv[1], "-n") == EQUAL)
@@ -76,7 +77,7 @@ int main(int argc, char **argv) {
     	else if (cmp_str(argv[1], "-p") == EQUAL)
     		GSport = argv[2];
     	else {
-    		iprintf("Invalid arguments to start the player\n");
+    		printf("Invalid arguments to start the player\n");
 			exit(1);
 		}
     }
@@ -86,7 +87,7 @@ int main(int argc, char **argv) {
     	else if (cmp_str(argv[3], "-p") == EQUAL)
     		GSport = argv[4];
     	else {
-    		iprintf("Invalid arguments to start the player\n");
+    		printf("Invalid arguments to start the player\n");
 			exit(1);
 		}
     }
