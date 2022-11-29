@@ -10,6 +10,17 @@
 /*---------------Struct---------------*/
 
 
+
+/* @brief:
+    struct that stores optional command line arguments
+    if no arguments is given set to default.
+*/
+struct optional_args{
+
+    char *ip;
+    int port;
+};
+
 /*---------------Constants---------------*/
 
 /*Maximum values: */
@@ -33,7 +44,7 @@
 
 /*Default settings: */
 #define DEFAULT_GSIP "tejo.tecnico.ulisboa.pt"
-#define DEFAULT_GSPORT 58011
+#define DEFAULT_GSPORT 58091
 
 /*Others: */
 #define PROGRAM_IS_RUNNING 1
