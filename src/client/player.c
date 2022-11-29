@@ -22,24 +22,28 @@ int main(int argc, char **argv) {
 	exit(1);
     }
     if (argc >= 3) {
-    	if (cmp_str(argv[1], "-n") == EQUAL)
-    		GSIP = argv[2];
-    	else if (cmp_str(argv[1], "-p") == EQUAL)
-    		GSport = argv[2];
-    	else {
-    		printf("Invalid arguments to start the player\n");
-			exit(1);
-		}
-    }
-    if (argc == 5) {
-    	if (cmp_str(argv[3], "-n") == EQUAL) 
-    		GSIP = argv[4];
-    	else if (cmp_str(argv[3], "-p") == EQUAL)
+    	if (cmp_str(argv[1], "-n") == EQUAL) {
+    	    GSIP = argv[2];
+            if (argc == 5 & cmp_str(argv[3], "-p") == EQUAL)
     		GSport = argv[4];
-    	else {
+    	    else {
+    	        printf("Invalid arguments to start the player\n");
+	        exit(1);
+            }
+	}
+    	else if (cmp_str(argv[1], "-p") == EQUAL) {
+    	    GSport = argv[2];
+            if (argc == 5 & cmp_str(argv[3], "-n") == EQUAL) 
+    		GSIP = argv[4];
+    	    else {
     		printf("Invalid arguments to start the player\n");
-			exit(1);
-		}
+		exit(1);
+	    }
+        }
+    	else {
+    	    printf("Invalid arguments to start the player\n");
+	    exit(1);
+	}
     }
 
 
@@ -47,51 +51,51 @@ int main(int argc, char **argv) {
     /* TO DO */
     
 
-	char input_line[MAX_STRING]; /*receives the input*/
-	char* command; /*receives the command from  stdin*/
+    char input_line[MAX_STRING]; /*receives the input*/
+    char* command; /*receives the command from  stdin*/
 
-	/*reads commands indefinitely until exit is given*/
-	while (PROGRAM_IS_RUNNING) {
+    /*reads commands indefinitely until exit is given*/
+    while (PROGRAM_IS_RUNNING) {
 
-		/* reads from sdin*/
-		fgets(input_line, MAX_STRING, stdin);
-		/*separates the command from the rest of the input*/
-		command = strtok(input_line, " ");
+	/* reads from sdin*/
+	fgets(input_line, MAX_STRING, stdin);
+	/*separates the command from the rest of the input*/
+	command = strtok(input_line, " ");
 
-		if (cmp_str(command, START_COMMAND) == EQUAL || cmp_str(command, SHORT_START_COMMAND) == EQUAL) {
-			if (send_start_message(input_line) == ERROR)
-				handle_start_error(); 
-		}
-		else if (cmp_str(command, PLAY_COMMAND) == EQUAL || cmp_str(command, SHORT_PLAY_COMMAND) == EQUAL) {
-			if (send_play_message(input_line) == ERROR)
-				handle_play_error(); 
-		}
-		else if (cmp_str(command, GUESS_COMMAND) == EQUAL || cmp_str(command, SHORT_GUESS_COMMAND) == EQUAL) {
-			if (send_guess_message(input_line) == ERROR)
-				handle_guess_error(); 
-		}
-		else if (cmp_str(command, SCOREBOARD_COMMAND) == EQUAL || cmp_str(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
-			if (send_scoreboard_message() == ERROR)
-				handle_scoreboard_error(); 
-		}
-		else if (cmp_str(command, HINT_COMMAND) == EQUAL || cmp_str(command, SHORT_HINT_COMMAND) == EQUAL) {
-			if (send_hint_message() == ERROR)
-				handle_hint_error(); 
-		}
-		if (cmp_str(command, STATE_COMMAND) == EQUAL || cmp_str(command, SHORT_STATE_COMMAND) == EQUAL) {
-			if (send_state_message() == ERROR)
-				handle_state_error(); 
-		}
-		if (cmp_str(command, QUIT_COMMAND) == EQUAL) {
-			if (send_quit_message() == ERROR)
-				handle_quit_error(); 
-		}
-		if (cmp_str(command, EXIT_COMMAND) == EQUAL) {
-			if (send_quit_message == ERROR)
-				handle_exit_error();
-			break; 
-		}
+	if (cmp_str(command, START_COMMAND) == EQUAL || cmp_str(command, SHORT_START_COMMAND) == EQUAL) {
+	    if (send_start_message(input_line) == ERROR)
+		handle_start_error(); 
 	}
+	else if (cmp_str(command, PLAY_COMMAND) == EQUAL || cmp_str(command, SHORT_PLAY_COMMAND) == EQUAL) {
+	    if (send_play_message(input_line) == ERROR)
+		handle_play_error(); 
+	}
+	else if (cmp_str(command, GUESS_COMMAND) == EQUAL || cmp_str(command, SHORT_GUESS_COMMAND) == EQUAL) {
+	    if (send_guess_message(input_line) == ERROR)
+		handle_guess_error(); 
+	}
+	else if (cmp_str(command, SCOREBOARD_COMMAND) == EQUAL || cmp_str(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
+	    if (send_scoreboard_message() == ERROR)
+		handle_scoreboard_error(); 
+	}
+	else if (cmp_str(command, HINT_COMMAND) == EQUAL || cmp_str(command, SHORT_HINT_COMMAND) == EQUAL) {
+	    if (send_hint_message() == ERROR)
+		handle_hint_error(); 
+	}
+	if (cmp_str(command, STATE_COMMAND) == EQUAL || cmp_str(command, SHORT_STATE_COMMAND) == EQUAL) {
+	    if (send_state_message() == ERROR)
+		handle_state_error(); 
+	}
+	if (cmp_str(command, QUIT_COMMAND) == EQUAL) {
+	    if (send_quit_message() == ERROR)
+		handle_quit_error(); 
+	}
+	if (cmp_str(command, EXIT_COMMAND) == EQUAL) {
+	    if (send_quit_message == ERROR)
+		handle_exit_error();
+	    break; 
+	}
+    }
 
 	return 0;
 }
