@@ -7,20 +7,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-/*---------------Struct---------------*/
-
-
-
-/* @brief:
-    struct that stores optional command line arguments
-    if no arguments is given set to default.
-*/
-struct optional_args{
-
-    char *ip;
-    char *port;
-};
-
 /*---------------MACROS---------------*/
 
 /*Maximum values: */
@@ -50,6 +36,27 @@ struct optional_args{
 #define PROGRAM_IS_RUNNING 1
 #define EQUAL 0
 #define ERROR -1
+#define USAGE_INFO  "\n"\
+					"Player Application (Player)\n"\ 
+		   			"Invalid arguments to start the player\n"\
+		  			"Usage: ./player [-n GSIP] [ -p GSport]\n"\
+		  			"\n"\
+					"GSIP is the IP adress of the machine where the game server (GS) runs.\n"\
+					"If this argument is omitted, the GS should be running on the same machine.\n"\
+					"\n"\
+					"GSPORT is the well-known port (TCP and UDP) where the GS accepts requests.\n"\
+					"If omitted, it assumes the value 5800+GN, where GN is the group number\n"
 
+/*---------------Struct---------------*/
+
+/* @brief:
+    struct that stores optional command line arguments
+    if no arguments is given set to default.
+*/
+struct optional_args{
+
+    char *ip = DEFAULT_GSIP;
+    char *port = DEFAULT_GSPORT;
+};
 
 #endif /* PLAYER_H */
