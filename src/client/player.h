@@ -21,7 +21,7 @@ struct optional_args{
     int port;
 };
 
-/*---------------Constants---------------*/
+/*---------------MACROS---------------*/
 
 /*Maximum values: */
 #define MAX_STRING 65535
@@ -49,6 +49,7 @@ struct optional_args{
 /*Others: */
 #define PROGRAM_IS_RUNNING 1
 #define EQUAL 0
+#define ERROR -1
 
 
 #endif /* PLAYER_H */

@@ -7,14 +7,13 @@
 #ifndef COMMANDS_TCP_H
 #define COMMANDS_TCP_H
 
-#include "player.h"
 
 /*---------------Function prototypes---------------*/
 
 /*Sending messages: */
-int send_scoreboard_message(struct);
-int send_hint_message(struct);
-int send_state_message(struct);
+int send_scoreboard_message();
+int send_hint_message();
+int send_state_message();
 
 
 /*Error handling: */

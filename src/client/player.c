@@ -6,11 +6,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "player.h"
+#include "commands_udp.h"
+#include "commands_tcp.h"
 
 
+static const char *usage_info = 
+	""
+	"Player Application (Player)\n" 
+	"Invalid arguments to start the player\n"
+	"Usage: ./player [-n GSIP] [ -p GSport]\n"
+	"\n"
+	"GSIP is the IP adress of the machine where the game server (GS) runs.\n"
+	"If this argument is omitted, the GS should be running on the same machine.\n"
+	"\n"
+	"GSPORT is the well-known port (TCP and UDP) where the GS accepts requests.\n"
+	"If omitted, it assumes the value 5800+GN, where GN is the group number\n";
 
-/*---------------Functions---------------*/
+
+static void usage() {
+	fprintf(stderr,usage_info);
+}
 
 
 struct optional_args parse_opt(int argc, char **argv) {
@@ -22,34 +39,33 @@ struct optional_args parse_opt(int argc, char **argv) {
 	
 	/*checks if the program was ran with valid arguments*/
     if (argc == 2 || argc == 4 || argc > 5) {
-		// TODO print to stderr 
-		printf("Invalid arguments to start the player\n");
+		usage();
 		exit(EXIT_FAILURE);
     }
     else if (argc >= 3) {
-    	if (cmp_str(argv[1], "-n") == EQUAL) {
+    	if (strcmp(argv[1], "-n") == EQUAL) {
     	    opt_args.ip = argv[2];
-            if (argc == 5 & cmp_str(argv[3], "-p") == EQUAL)
+            if (argc == 5 & strcmp(argv[3], "-p") == EQUAL)
     			opt_args.port = atoi(argv[4]);
     	    else {
-    	        printf("Invalid arguments to start the player\n");
+    	        usage();
 	        	exit(EXIT_FAILURE);
             }
 		}
 	}
-    else if (cmp_str(argv[1], "-p") == EQUAL) {
+    else if (strcmp(argv[1], "-p") == EQUAL) {
 
 		opt_args.port = atoi(argv[2]);
-        if (argc == 5 & cmp_str(argv[3], "-n") == EQUAL) 
+        if (argc == 5 & strcmp(argv[3], "-n") == EQUAL) 
     		opt_args.ip = argv[4];
 		else {
-			printf("Invalid arguments to start the player\n");
+			usage();
 			exit(EXIT_FAILURE);
 		}
 	}
     else {
-    	printf("Invalid arguments to start the player\n");
-	    exit(1);
+    	usage();
+	    exit(EXIT_FAILURE);
 	}
 
 	return opt_args;
@@ -78,36 +94,36 @@ void input_handler() {
 		/*separates the command from the rest of the input*/
 		command = strtok(input_line, " ");
 
-		if (cmp_str(command, START_COMMAND) == EQUAL || cmp_str(command, SHORT_START_COMMAND) == EQUAL) {
-	    	if (send_start_message(input_line) == ERROR)
+		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
+	    	if (send_start_message() == ERROR)
 			handle_start_error(); 
 		}
-		else if (cmp_str(command, PLAY_COMMAND) == EQUAL || cmp_str(command, SHORT_PLAY_COMMAND) == EQUAL) {
-	    	if (send_play_message(input_line) == ERROR)
+		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
+	    	if (send_play_message() == ERROR)
 			handle_play_error(); 
 		}
-		else if (cmp_str(command, GUESS_COMMAND) == EQUAL || cmp_str(command, SHORT_GUESS_COMMAND) == EQUAL) {
-	    	if (send_guess_message(input_line) == ERROR)
+		else if (strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
+	    	if (send_guess_message() == ERROR)
 			handle_guess_error(); 
 		}
-		else if (cmp_str(command, SCOREBOARD_COMMAND) == EQUAL || cmp_str(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
+		else if (strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
 	    	if (send_scoreboard_message() == ERROR)
 			handle_scoreboard_error(); 
 		}
-		else if (cmp_str(command, HINT_COMMAND) == EQUAL || cmp_str(command, SHORT_HINT_COMMAND) == EQUAL) {
+		else if (strcmp(command, HINT_COMMAND) == EQUAL || strcmp(command, SHORT_HINT_COMMAND) == EQUAL) {
 	    	if (send_hint_message() == ERROR)
 			handle_hint_error(); 
 		}
-		if (cmp_str(command, STATE_COMMAND) == EQUAL || cmp_str(command, SHORT_STATE_COMMAND) == EQUAL) {
+		if (strcmp(command, STATE_COMMAND) == EQUAL || strcmp(command, SHORT_STATE_COMMAND) == EQUAL) {
 	    	if (send_state_message() == ERROR)
 			handle_state_error(); 
 		}
-		if (cmp_str(command, QUIT_COMMAND) == EQUAL) {
+		if (strcmp(command, QUIT_COMMAND) == EQUAL) {
 	    	if (send_quit_message() == ERROR)
 			handle_quit_error(); 
 		}
-		if (cmp_str(command, EXIT_COMMAND) == EQUAL) {
-	    	if (send_quit_message == ERROR)
+		if (strcmp(command, EXIT_COMMAND) == EQUAL) {
+	    	if (send_quit_message() == ERROR)
 			handle_exit_error();
 	    	break; 
 		}
@@ -121,7 +137,7 @@ int main(int argc, char **argv) {
 
 	parse_opt(argc,argv);
 	create_socket_udp_tcp();
-	input_handler();
+	//input_handler();
 	exit(EXIT_SUCCESS);
 
 }
