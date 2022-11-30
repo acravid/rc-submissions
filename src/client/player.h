@@ -18,7 +18,7 @@
 struct optional_args{
 
     char *ip;
-    int port;
+    char *port;
 };
 
 /*---------------MACROS---------------*/
@@ -44,7 +44,7 @@ struct optional_args{
 
 /*Default settings: */
 #define DEFAULT_GSIP "tejo.tecnico.ulisboa.pt"
-#define DEFAULT_GSPORT 58091
+#define DEFAULT_GSPORT "58091"
 
 /*Others: */
 #define PROGRAM_IS_RUNNING 1

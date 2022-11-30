@@ -32,38 +32,48 @@ static void usage() {
 
 struct optional_args parse_opt(int argc, char **argv) {
 
+
+	// TODO: 
+	// simplify this function  
+
 	struct optional_args opt_args;
-	
-	opt_args.ip = DEFAULT_GSIP;
-	opt_args.port = DEFAULT_GSPORT;
-	
+
+
+		
 	/*checks if the program was ran with valid arguments*/
-    if (argc == 2 || argc == 4 || argc > 5) {
+    if(argc == 2 || argc == 4 || argc > 5) {
 		usage();
 		exit(EXIT_FAILURE);
     }
-    else if (argc >= 3) {
+	else if(argc == 1) {
+		// if all args are omitted 
+		// set to default 
+		// ./player.c
+		opt_args.ip = DEFAULT_GSIP;
+		opt_args.port = DEFAULT_GSPORT;
+	}
+    else if(argc >= 3) {
     	if (strcmp(argv[1], "-n") == EQUAL) {
     	    opt_args.ip = argv[2];
             if (argc == 5 & strcmp(argv[3], "-p") == EQUAL)
-    			opt_args.port = atoi(argv[4]);
+    			opt_args.port = argv[4];
     	    else {
     	        usage();
 	        	exit(EXIT_FAILURE);
             }
 		}
 	}
-    else if (strcmp(argv[1], "-p") == EQUAL) {
+    else if(strcmp(argv[1], "-p") == EQUAL) {
 
-		opt_args.port = atoi(argv[2]);
-        if (argc == 5 & strcmp(argv[3], "-n") == EQUAL) 
+		opt_args.port = argv[2];
+        if(argc == 5 & strcmp(argv[3], "-n") == EQUAL) 
     		opt_args.ip = argv[4];
-		else {
+		else{
 			usage();
 			exit(EXIT_FAILURE);
 		}
 	}
-    else {
+    else{
     	usage();
 	    exit(EXIT_FAILURE);
 	}
