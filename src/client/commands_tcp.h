@@ -16,10 +16,4 @@ int send_hint_message();
 int send_state_message();
 
 
-/*Error handling: */
-void handle_scoreboard_error();
-void handle_hint_error();
-void handle_state_error();
-
-
 #endif /* COMMANDS_TCP_H */

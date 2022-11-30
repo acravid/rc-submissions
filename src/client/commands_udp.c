@@ -28,33 +28,3 @@ int send_quit_message() {
 
 
 }
-
-
-void handle_start_error() {
-
-
-}
-
-
-void handle_play_error() {
-
-
-}
-
-
-void handle_guess_error() {
-
-
-}
-
-
-void handle_quit_error() {
-
-
-}
-
-
-void handle_exit_error() {
-
-    
-}
