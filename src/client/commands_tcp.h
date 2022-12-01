@@ -16,4 +16,11 @@ int send_hint_message();
 int send_state_message();
 
 
+struct socket_tcp {
+    
+    int tcp_fd;
+    struct addrinfo *tcp_id;
+};
+
+
 #endif /* COMMANDS_TCP_H */

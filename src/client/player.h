@@ -7,6 +7,18 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+
+/*---------------Function prototypes---------------*/
+/*Error handling: */
+void handle_start_error();
+void handle_play_error();
+void handle_guess_error();
+void handle_scoreboard_error();
+void handle_hint_error();
+void handle_state_error();
+void handle_quit_error();
+void handle_exit_error();
+
 /*---------------MACROS---------------*/
 
 /*Maximum values: */
@@ -37,7 +49,7 @@
 #define EQUAL 0
 #define ERROR -1
 #define USAGE_INFO  "\n"\
-					"Player Application (Player)\n"\ 
+					"Player Application (Player)\n"\
 		   			"Invalid arguments to start the player\n"\
 		  			"Usage: ./player [-n GSIP] [ -p GSport]\n"\
 		  			"\n"\
@@ -55,8 +67,8 @@
 */
 struct optional_args{
 
-    char *ip = DEFAULT_GSIP;
-    char *port = DEFAULT_GSPORT;
+    char *ip;
+    char *port;
 };
 
 #endif /* PLAYER_H */

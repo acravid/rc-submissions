@@ -11,17 +11,51 @@
 #include "commands_udp.h"
 #include "commands_tcp.h"
 
+void handle_start_error()  {
 
-/*---------------Function prototypes---------------*/
-/*Error handling: */
-void handle_start_error();
-void handle_play_error();
-void handle_guess_error();
-void handle_scoreboard_error();
-void handle_hint_error();
-void handle_state_error();
-void handle_quit_error();
-void handle_exit_error();
+
+}
+
+void handle_play_error() {
+
+
+}
+
+
+void handle_guess_error() {
+
+
+} 
+
+
+void handle_scoreboard_error() {
+	 
+
+}
+
+
+void handle_hint_error() {
+
+
+}
+
+
+void handle_state_error() {
+
+
+}
+
+
+void handle_quit_error() {
+
+
+}
+
+
+void handle_exit_error() {
+
+
+}
 
 
 // prints usage message to stderr
@@ -38,7 +72,7 @@ struct optional_args parse_opt(int argc, char **argv) {
 	    exit(EXIT_FAILURE);
     }
 
-    struct optional_args opt_args;
+    struct optional_args opt_args = {DEFAULT_GSIP , DEFAULT_GSPORT};
     
     if (argc >= 3) {
     	if (strcmp(argv[1], "-n") == EQUAL) {
@@ -69,7 +103,9 @@ struct optional_args parse_opt(int argc, char **argv) {
 }
 
 
-void create_socket_udp_tcp() {
+void create_socket_udp_tcp(struct optional_args opt_args) {
+
+
 
 	
 }
@@ -129,8 +165,8 @@ void input_handler() {
 
 int main(int argc, char **argv) {
 
-	parse_opt(argc,argv);
-	create_socket_udp_tcp();
+	struct optional_args opt_args = parse_opt(argc,argv);
+	create_socket_udp_tcp(opt_args);
 	//input_handler();
 	exit(EXIT_SUCCESS);
 
