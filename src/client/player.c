@@ -2,6 +2,8 @@
  * File: player.c
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: player application for a remote word game
+ * 
+ * 
 */
 
 #include <stdio.h>
@@ -10,6 +12,7 @@
 #include "player.h"
 #include "commands_udp.h"
 #include "commands_tcp.h"
+#include "../common/common.h"
 
 void handle_start_error()  {
 
@@ -57,6 +60,26 @@ void handle_exit_error() {
 
 }
 
+// TODO
+// mv to another file
+int create_udp_connection(struct socket_udp *socket_t_udp, struct optional_args optional_args) {
+	
+	socket_t_udp->udp_fd = socket(AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
+	if(socket_t_udp->udp_fd == ERROR) {
+		fprintf(stderr, ERROR_FD_UDP);
+		exit(EXIT_FAILURE);
+	}
+	// set hints args and get the internet adress                                       IPv4    UDP
+	socket_t_udp->udp_hints = getaddrinfo_extended(optional_args.ip,optional_args.port,AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
+	if(socket_t_udp->udp_hints == NULL) {
+		// Failed to get an internet address
+		close(socket_t_udp->udp_fd);
+		fprintf(stderr, ERROR_ADDRINFO_UDP);
+		exit(EXIT_FAILURE);
+
+	}
+	return SUCESS;
+}
 
 // prints usage message to stderr
 static void usage() {
@@ -105,7 +128,14 @@ struct optional_args parse_opt(int argc, char **argv) {
 
 void create_socket_udp_tcp(struct optional_args opt_args) {
 
+	struct socket_udp socket_t_udp = {0, NULL};
+	int error_code = create_udp_connection(&socket_t_udp,opt_args);
+	if(error_code == ERROR) {
+		// TODO:
 
+	}
+
+ 
 
 	
 }

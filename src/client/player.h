@@ -2,6 +2,8 @@
  * File: player.h
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: header for player.c
+ * 
+ * 
 */
 
 #ifndef PLAYER_H
@@ -47,7 +49,16 @@ void handle_exit_error();
 /*Others: */
 #define PROGRAM_IS_RUNNING 1
 #define EQUAL 0
+#define SUCESS 0
 #define ERROR -1
+#define ERROR_FD_UDP  "\n"\
+					 "An error has occurred\n"\
+					 "Failed to create an endpoint for communication\n"\
+					 "UDP: The request (socket) was not satisfied\n"
+
+#define ERROR_ADDRINFO_UDP "\n"\
+						   "An error has occurred\n"\
+						   "UDP: The request (getaddrinfo) was not satisfied\n"
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\
 		   			"Invalid arguments to start the player\n"\

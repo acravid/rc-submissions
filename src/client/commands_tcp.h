@@ -2,6 +2,8 @@
  * File: commands_tcp.h
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: header for commands_tcp.c
+ * 
+ * 
 */
 
 #ifndef COMMANDS_TCP_H
@@ -19,7 +21,7 @@ int send_state_message();
 struct socket_tcp {
     
     int tcp_fd;
-    struct addrinfo *tcp_id;
+    struct addrinfo *tcp_hints;
 };
 
 

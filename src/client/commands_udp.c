@@ -28,3 +28,11 @@ int send_quit_message() {
 
 
 }
+
+
+int create_udp_connection(struct socket_udp *socket_t_udp,char *ip, char *port) {
+
+
+
+    
+}
