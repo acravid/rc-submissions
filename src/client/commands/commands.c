@@ -10,7 +10,7 @@
 // 
 
 
-int udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
+void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 
     sockets_ds->fd_udp = socket(AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
 	
@@ -30,12 +30,8 @@ int udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 
 	}
 
-	return SUCESS;
 
 }
-
-
-
 
 
 
@@ -44,10 +40,9 @@ int udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 // 
 
 
-int tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
+void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 
 
-	
 	int errno;
 
     sockets_ds->fd_tcp = socket(AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
@@ -78,7 +73,5 @@ int tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 		fprint(stderr,ERROR_TCP_CONNECT);
 		exit(EXIT_FAILURE);
 	}
-
-	return sockets_ds->fd_tcp;
 
 }

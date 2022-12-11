@@ -43,7 +43,7 @@ int send_play_message();
 int send_guess_message();
 int send_quit_message();
 
-int udp_setup(socket_ds *sockets_ds,optional_args opt_args);
+void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 //  UDP Error messages
 
@@ -67,7 +67,7 @@ int send_scoreboard_message();
 int send_hint_message();
 int send_state_message();
 
-int tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
+void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 
 //  TCP Error messages
