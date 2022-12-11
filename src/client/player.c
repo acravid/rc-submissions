@@ -62,7 +62,34 @@ void handle_exit_error() {
 
 // TODO
 // mv to another file
+int create_tcp_connection(struct socket_tcp *socket_t_tcp, struct optional_args optional_args) {
+	
+	int connection_status;
+	socket_t_tcp->tcp_fd = socket(AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
+	if(socket_t_tcp->tcp_fd == ERROR) {
+		fprintf(stderr,ERROR_FD_TCP);
+		exit(EXIT_FAILURE);
+	}
+
+	// if the connection or binding succeeds,zero is returned.
+	// On error, -1 is returned, and errno is set to indicate the error.
+	// Reference: man pages
+	connection_status = connect(socket_t_tcp->tcp_fd, socket_t_tcp->tcp_hints->ai_addr, socket_t_tcp->tcp_hints->ai_addrlen);
+	if(connection_status == ERROR) {
+		fprint(stderr,ERROR_TCP_CONNECT);
+		exit(EXIT_FAILURE);
+	}
+
+	return socket_t_tcp->tcp_fd;
+
+}
+
+
+
+// TODO
+// mv to another file
 int create_udp_connection(struct socket_udp *socket_t_udp, struct optional_args optional_args) {
+
 	
 	socket_t_udp->udp_fd = socket(AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
 	if(socket_t_udp->udp_fd == ERROR) {
@@ -127,6 +154,8 @@ struct optional_args parse_opt(int argc, char **argv) {
 
 
 void create_socket_udp_tcp(struct optional_args opt_args) {
+
+
 
 	struct socket_udp socket_t_udp = {0, NULL};
 	int error_code = create_udp_connection(&socket_t_udp,opt_args);
