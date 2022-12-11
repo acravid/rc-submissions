@@ -65,6 +65,10 @@ void handle_exit_error();
 					 "Failed to create an endpoint for communication\n"\
 					 "UDP: The request (socket) was not satisfied\n"
 
+#define ERROR_ADDR_TCP "\n"\
+					  "An error has occurred\n"\
+					  "TCP: The request (getaddrinfo) was not successful\n"
+
 #define ERROR_ADDRINFO_UDP "\n"\
 						   "An error has occurred\n"\
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
