@@ -10,121 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "player.h"
-#include "commands_udp.h"
-#include "commands_tcp.h"
+#include "commands/commands.h"
 #include "../common/common.h"
 
-void handle_start_error()  {
-
-
-}
-
-void handle_play_error() {
-
-
-}
-
-
-void handle_guess_error() {
-
-
-} 
-
-
-void handle_scoreboard_error() {
-	 
-
-}
-
-
-void handle_hint_error() {
-
-
-}
-
-
-void handle_state_error() {
-
-
-}
-
-
-void handle_quit_error() {
-
-
-}
-
-
-void handle_exit_error() {
-
-
-}
-
-// TODO
-// mv to another file
-int create_tcp_connection(struct socket_tcp *socket_t_tcp, struct optional_args optional_args) {
-	
-	int connection_status;
-	socket_t_tcp->tcp_fd = socket(AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
-	if(socket_t_tcp->tcp_fd == ERROR) {
-		fprintf(stderr,ERROR_FD_TCP);
-		exit(EXIT_FAILURE);
-	}
-
-
-	//set hints args and get the internet adress
-	socket_t_tcp->tcp_hints = getaddrinfo_extended(optional_args.ip,optional_args.port,AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
-	if(socket_t_tcp->tcp_hints == NULL) {
-		// Failed to get an internet address 
-		fprintf(stderr,ERROR_ADDR_TCP);
-		exit(EXIT_FAILURE);
-	}
-
-
-	// if the connection or binding succeeds,zero is returned.
-	// On error, -1 is returned, and errno is set to indicate the error.
-	// Reference: man pages
-	connection_status = connect(socket_t_tcp->tcp_fd, socket_t_tcp->tcp_hints->ai_addr, socket_t_tcp->tcp_hints->ai_addrlen);
-	if(connection_status == ERROR) {
-		fprint(stderr,ERROR_TCP_CONNECT);
-		exit(EXIT_FAILURE);
-	}
-
-	return socket_t_tcp->tcp_fd;
-
-}
-
-
-
-// TODO
-// mv to another file
-int create_udp_connection(struct socket_udp *socket_t_udp, struct optional_args optional_args) {
-
-	
-	socket_t_udp->udp_fd = socket(AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
-	if(socket_t_udp->udp_fd == ERROR) {
-		fprintf(stderr, ERROR_FD_UDP);
-		exit(EXIT_FAILURE);
-	}
-	// set hints args and get the internet address                                      IPv4    UDP
-	socket_t_udp->udp_hints = getaddrinfo_extended(optional_args.ip,optional_args.port,AF_INET,SOCK_DGRAM,AUTO_PROTOCOL);
-	if(socket_t_udp->udp_hints == NULL) {
-		// Failed to get an internet address
-		close(socket_t_udp->udp_fd);
-		fprintf(stderr, ERROR_ADDRINFO_UDP);
-		exit(EXIT_FAILURE);
-
-	}
-	return SUCESS;
-}
 
 // prints usage message to stderr
 static void usage() {
 	fprintf(stderr, USAGE_INFO);
 }
 
+
+
 // defines the game server IP and its port based on input arguments
-struct optional_args parse_opt(int argc, char **argv) {
+optional_args parse_opt(int argc, char **argv) {
 
     // checks if the program was ran with valid arguments
     if (argc == 2 || argc == 4 || argc > 5) {
@@ -132,7 +30,7 @@ struct optional_args parse_opt(int argc, char **argv) {
 	    exit(EXIT_FAILURE);
     }
 
-    struct optional_args opt_args = {DEFAULT_GSIP , DEFAULT_GSPORT};
+  	optional_args opt_args = {DEFAULT_GSIP , DEFAULT_GSPORT};
     
     if (argc >= 3) {
     	if (strcmp(argv[1], "-n") == EQUAL) {
@@ -163,25 +61,8 @@ struct optional_args parse_opt(int argc, char **argv) {
 }
 
 
-void create_socket_udp_tcp(struct optional_args opt_args) {
 
-
-	// udp connection info
-	struct socket_udp socket_t_udp = {0, NULL};
-	// tcp connection info 
-	struct socket_tcp socket_t_tcp = {0 , NULL};
-	// might just as well use merge them into one struct ?
-
-	int error_code = create_udp_connection(&socket_t_udp,opt_args);
-
-
-
- 
-
-	
-}
-
-void input_handler() {
+void handle_input() {
 
 
     // receives the input
@@ -236,9 +117,10 @@ void input_handler() {
 
 int main(int argc, char **argv) {
 
-	struct optional_args opt_args = parse_opt(argc,argv);
-	create_socket_udp_tcp(opt_args);
-	//input_handler();
+	optional_args opt_args = parse_opt(argc,argv);
+	setup_socket(opt_args);
+	handle_input()
+	
 	exit(EXIT_SUCCESS);
 
 }

@@ -51,29 +51,7 @@ void handle_exit_error();
 #define EQUAL 0
 #define SUCESS 0
 #define ERROR -1
-#define ERROR_FD_TCP  "\n"\
-					 "An error has occurred\n"\
-					 "Failed to create an endpoint for communication\n"\
-					 "TCP: The request (socket) was not satisfied\n"
 
-#define ERROR_TCP_CONNECT "\n"\
-					 "An error has occurred\n"\
-					 "TCP: The binding or connection was not successful\n"
-
-#define ERROR_FD_UDP  "\n"\
-					 "An error has occurred\n"\
-					 "Failed to create an endpoint for communication\n"\
-					 "UDP: The request (socket) was not satisfied\n"
-
-#define ERROR_ADDR_TCP "\n"\
-					  "An error has occurred\n"\
-					  "TCP: The request (getaddrinfo) was not successful\n"
-
-#define ERROR_ADDRINFO_UDP "\n"\
-						   "An error has occurred\n"\
-						   "UDP: The request (getaddrinfo) was not satisfied\n"
-
-		
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\
 		   			"Invalid arguments to start the player\n"\
@@ -91,10 +69,10 @@ void handle_exit_error();
     struct that stores optional command line arguments
     if no arguments is given set to default.
 */
-struct optional_args{
+typedef struct {
 
     char *ip;
     char *port;
-};
+} optional_args;
 
 #endif /* PLAYER_H */
