@@ -9,18 +9,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-
-/*---------------Function prototypes---------------*/
-/*Error handling: */
-void handle_start_error();
-void handle_play_error();
-void handle_guess_error();
-void handle_scoreboard_error();
-void handle_hint_error();
-void handle_state_error();
-void handle_quit_error();
-void handle_exit_error();
-
 /*---------------MACROS---------------*/
 
 /*Maximum values: */

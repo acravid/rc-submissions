@@ -69,7 +69,10 @@ void setup_socket(optional_args opt_args) {
 	socket_ds sockets_ds =  { 0, 0, NULL, NULL};
 	
 	udp_setup(&sockets_ds,opt_args);
-	tcp_setup(&sockets_ds,opt_args);
+
+	//  TCP connection is only started when a certain command is called
+	//  no need to start it at the onset
+	// tcp_setup(&sockets_ds,opt_args);
 
 
 
@@ -77,6 +80,9 @@ void setup_socket(optional_args opt_args) {
 
 void handle_input() {
 
+
+	// TODO:
+	// update functions return value from int to [void]
 
     // receives the input
     char input_line[MAX_STRING];
@@ -92,36 +98,28 @@ void handle_input() {
 		command = strtok(input_line, " ");
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
-	    	if (send_start_message() == ERROR)
-				handle_start_error(); 
+			send_start_message();
 		}
 		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
-	    	if (send_play_message() == ERROR)
-				handle_play_error(); 
+			send_play_message();
 		}
 		else if (strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
-	    	if (send_guess_message() == ERROR)
-				handle_guess_error(); 
+			send_guess_message(); 
 		}
 		else if (strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
-	    	if (send_scoreboard_message() == ERROR)
-				handle_scoreboard_error(); 
+			send_scoreboard_message();
 		}
 		else if (strcmp(command, HINT_COMMAND) == EQUAL || strcmp(command, SHORT_HINT_COMMAND) == EQUAL) {
-	    	if (send_hint_message() == ERROR)
-				handle_hint_error(); 
+			send_hint_message();
 		}
 		else if (strcmp(command, STATE_COMMAND) == EQUAL || strcmp(command, SHORT_STATE_COMMAND) == EQUAL) {
-	    	if (send_state_message() == ERROR)
-				handle_state_error(); 
+			send_state_message(); 
 		}
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
-	    	if (send_quit_message() == ERROR)
-				handle_quit_error(); 
+			send_quit_message(); 
 		}
 		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
-	    	if (send_quit_message() == ERROR)
-				handle_exit_error();
+			send_quit_message();
 	    	break; 
 		}
     }

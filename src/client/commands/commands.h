@@ -25,23 +25,15 @@ typedef struct {
 } socket_ds; // socket DATAGRAM STREAM
 
 
-void handle_start_error();
-void handle_play_error();
-void handle_guess_error();
-void handle_scoreboard_error();
-void handle_hint_error();
-void handle_state_error();
-void handle_quit_error();
-void handle_exit_error();
 
 
 // UDP Function Prototypes 
 
 /*Sending messages: */
-int send_start_message();
-int send_play_message();
-int send_guess_message();
-int send_quit_message();
+void send_start_message();
+void send_play_message();
+void send_guess_message();
+void send_quit_message();
 
 void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
@@ -63,9 +55,9 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 // TCP Function Prototypes 
 
-int send_scoreboard_message();
-int send_hint_message();
-int send_state_message();
+void send_scoreboard_message();
+void send_hint_message();
+void send_state_message();
 
 void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
