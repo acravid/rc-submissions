@@ -20,6 +20,9 @@ struct addrinfo *getaddrinfo_extended(const char *ip, const char *port, int fami
 void create_mapping(protocol_status_code *protocol_status_code_array_ptr);
 char *status_code_str(int status_code);
 int status_code_int(char *status_code);
+ssize_t send_udp_request(int fd_upd, char *buffer,size_t size,struct addrinfo *addrinfo_udp);
+ssize_t recv_udp_response();
+char *word_dispplay_format(int n);
 
 
 // Function Prototypes 
@@ -34,11 +37,10 @@ int status_code_int(char *status_code);
 
 // Macros for creating and manipulating buffers (generic buffers)
 
-#define buffer_typedef(type,typename) \
-    typedef struct {                  \
-        size_t size;                  \
-        type* info;                   \
-    }typename;                        \
+typedef struct {                  
+    size_t size;                  
+    char* info;                   
+}byte_buffer;                        
 
 #define buffer_init(buf,len,type) \
     type info[len]; \
@@ -47,7 +49,7 @@ int status_code_int(char *status_code);
 
 
 // Note:
-// this structure will be work just like a map 
+// this structure works just like a map 
 //  
 //     .----------.        .---------.
 //     | int_code | < == > | argtype |
