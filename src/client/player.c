@@ -14,6 +14,8 @@
 #include "../common/common.h"
 
 
+buffer_typedef(char,byte_buffer);
+
 // prints usage message to stderr
 static void usage() {
 	fprintf(stderr, USAGE_INFO);
@@ -60,13 +62,14 @@ optional_args parse_opt(int argc, char **argv) {
     return opt_args;
 }
 
-void setup_socket(optional_args opt_args) {
+socket_ds  *setup_socket(optional_args opt_args) {
 
 
 	// TODO
 	// add signal handling 
 
 	socket_ds sockets_ds =  { 0, 0, NULL, NULL};
+	socket_ds *socket_ds_ptr = &sockets_ds;
 	
 	udp_setup(&sockets_ds,opt_args);
 
@@ -74,28 +77,39 @@ void setup_socket(optional_args opt_args) {
 	//  no need to start it at the onset
 	// tcp_setup(&sockets_ds,opt_args);
 
+	return socket_ds_ptr;
+
 
 
 }
 
-void handle_input() {
+void handle_input(socket_ds *socket_ds_ptr) {
 
 
-	// TODO:
-	// update functions return value from int to [void]
 
     // receives the input
-    char input_line[MAX_STRING];
+	byte_buffer input_line;
+	buffer_init(input_line,BUFFER_VALUE,char);
+
+	// same as     char input_line[BUFFER_VALUE];
+
     // receives the command from  stdin 
     char* command; 
 
     // reads commands indefinitely until exit is given
     while (PROGRAM_IS_RUNNING) {
 
-		// reads from sdin
-		fgets(input_line, MAX_STRING, stdin);
+
+		// prompt
+		printf("[>]");
+		// get command
+		fgets(input_line.info, input_line.size, stdin);
+		// read up to the string terminator character
+		input_line.info[input_line.size -1 ] = '\0';
+
+
 		// separates the command from the rest of the input
-		command = strtok(input_line, " ");
+		command = strtok(input_line.info, " ");
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
 			send_start_message();
@@ -126,11 +140,23 @@ void handle_input() {
 }
 
 
+//
+// Function: main
+//
+//
+// Inputs: int argcm char** argv
+//
+//
+// Description:
+//
+//
+// Main program entry point
+//
 int main(int argc, char **argv) {
 
 	optional_args opt_args = parse_opt(argc,argv);
-	setup_socket(opt_args);
-	handle_input();
+	socket_ds *socket_ds_ptr = setup_socket(opt_args);
+	handle_input(socket_ds_ptr);
 	exit(EXIT_SUCCESS);
 
 }
