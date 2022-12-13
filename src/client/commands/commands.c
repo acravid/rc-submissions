@@ -27,36 +27,74 @@ buffer_typedef(char,byte_buffer);
 //
 //
 // 
-void send_start_message() {
+void send_start_message(socket_ds *socket_ds_ptr) {
 
 	char *player_id;
+	ssize_t ret_send_udp_request, ret_recv_udp_response;
 	int ret;
 	
-	byte_buffer message;
-	buffer_init(message,MESSAGE_SIZE,char);
+	byte_buffer request, response;
+	buffer_init(request,REQUEST_SIZE_SNG,char);
+	buffer_init(response,RESPONSE_SIZE_SNG,char)
 
 	player_id = strtok(NULL," ");
 
 	
-	sprintf(message.info,"SNG %s\n",player_id);
+	sprintf(request.info,"SNG %s\n",player_id);
+	
 
-	ret = send_udp_message();
+	// send request over to the server 
+	ret_send_udp_request = send_udp_request(socket_ds_ptr->fd_udp,request.info,request.info,socket_ds_ptr->addrinfo_udp);
 
-	if(ret == OK) {
-		
+	if(ret_send_udp_request == ERROR) {
+		fprintf("%s",ERROR_SEND_UDP);
+		exit(EXIT_FAILURE);
 	}
 
 	
 
+	// receive the response from the previous request
+	ret_recv_udp_response = rcv_udp_response(socket_ds_ptr->fd_udp,response.info, response.size, socket_ds_ptr->addrinfo_udp);
+	if(ret_recv_udp_response == ERROR) {
+		fprintf("%s",ERROR_SEND_UDP);
+		exit(EXIT_FAILURE);
+
+	}
+	if(ret_recv_udp_response < response.size) {
+		response.info[ret_recv_udp_response] = '\0';
+	}
+
+	// by now we've already received the response 
+	// in the following formart 
+	// e.g RSG OK 10 8
+
+
+	// process the response 
+	// and output correctly
+
+
+
+
+}
 
 
 
 
 
+//
+// Function:
+//
+//
+// Inputs: 
+//
+//
+// Description:
+//
+//
+//
+void send_play_message(socket_ds *socket_ds_ptr) {
 
 
-	// return value from the udp call
-	ret;
 
 
 
@@ -77,30 +115,7 @@ void send_start_message() {
 //
 //
 //
-void send_play_message() {
-
-
-
-
-
-
-
-
-}
-
-
-//
-// Function:
-//
-//
-// Inputs: 
-//
-//
-// Description:
-//
-//
-//
-void send_guess_message() {
+void send_guess_message(socket_ds *socket_ds_ptr) {
 
 
 
@@ -121,7 +136,7 @@ void send_guess_message() {
 //
 //
 //
-void send_quit_message() {
+void send_quit_message(socket_ds *socket_ds_ptr) {
 
 
 

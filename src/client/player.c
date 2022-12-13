@@ -112,13 +112,13 @@ void handle_input(socket_ds *socket_ds_ptr) {
 		command = strtok(input_line.info, " ");
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
-			send_start_message();
+			send_start_message(socket_ds_ptr);
 		}
 		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
-			send_play_message();
+			send_play_message(socket_ds_ptr);
 		}
 		else if (strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
-			send_guess_message(); 
+			send_guess_message(socket_ds_ptr); 
 		}
 		else if (strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
 			send_scoreboard_message();
@@ -130,10 +130,10 @@ void handle_input(socket_ds *socket_ds_ptr) {
 			send_state_message(); 
 		}
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
-			send_quit_message(); 
+			send_quit_message(socket_ds_ptr); 
 		}
 		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
-			send_quit_message();
+			send_exit_message(socket_ds_ptr);
 	    	break; 
 		}
     }

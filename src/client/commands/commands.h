@@ -30,10 +30,11 @@ typedef struct {
 // UDP Function Prototypes 
 
 /*Sending messages: */
-void send_start_message();
-void send_play_message();
-void send_guess_message();
-void send_quit_message();
+void send_start_message(socket_ds *socket_ds_ptr);
+void send_play_message(socket_ds *socket_ds_ptr);
+void send_guess_message(socket_ds *socket_ds_ptr);
+void send_quit_message(socket_ds *socket_ds_ptr);
+void send_exit_message(socket_ds *socket_ds_ptr);
 
 
 void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
@@ -50,7 +51,9 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define ERROR_ADDR_UDP "\n"\
 						   "An error has occurred\n"\
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
-
+#define ERROR_SEND_UDP "\n"\
+						"UDP: An error has occurred while trying to send data over SOCK_GRAM \n"\
+		
 
 
 
@@ -83,6 +86,13 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 // Macros
 
 #define ERROR -1
-#define MESSAGE_SIZE 32
+#define SNG_REQUEST_SIZE 9
+#define SNG_RESPONSE_SIZE 9
+#define SNG_RESPONSE "New game started (max %c errors): %s"
+#define REQUEST_SIZE_SNG 9
+#define RESPONSE_SIZE_SNG 13
+#define 
+
+
 
 #endif /* COMMANDS_H */
