@@ -5,9 +5,131 @@
 
 
 
+buffer_typedef(char,byte_buffer);
+
 // 
 //  UDP Module
 // 
+
+
+
+// TODO:
+// complete function's brief
+
+//
+// Function:
+//
+//
+// Inputs: 
+//
+//
+// Description:
+//
+//
+// 
+void send_start_message() {
+
+	char *player_id;
+	int ret;
+	
+	byte_buffer message;
+	buffer_init(message,MESSAGE_SIZE,char);
+
+	player_id = strtok(NULL," ");
+
+	
+	sprintf(message.info,"SNG %s\n",player_id);
+
+	ret = send_udp_message();
+
+	if(ret == OK) {
+		
+	}
+
+	
+
+
+
+
+
+
+
+
+	// return value from the udp call
+	ret;
+
+
+
+
+
+
+}
+
+
+//
+// Function:
+//
+//
+// Inputs: 
+//
+//
+// Description:
+//
+//
+//
+void send_play_message() {
+
+
+
+
+
+
+
+
+}
+
+
+//
+// Function:
+//
+//
+// Inputs: 
+//
+//
+// Description:
+//
+//
+//
+void send_guess_message() {
+
+
+
+
+
+
+}
+
+
+//
+// Function:
+//
+//
+// Inputs: 
+//
+//
+// Description:
+//
+//
+//
+void send_quit_message() {
+
+
+
+
+
+
+
+}
 
 
 void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
@@ -70,7 +192,7 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 	errno = connect(sockets_ds->fd_tcp, sockets_ds->addrinfo_tcp->ai_addr, sockets_ds->addrinfo_tcp->ai_addrlen);
 	
     if( errno == ERROR) {
-		fprint(stderr,ERROR_TCP_CONNECT);
+		fprintf(stderr,ERROR_TCP_CONNECT);
 		exit(EXIT_FAILURE);
 	}
 

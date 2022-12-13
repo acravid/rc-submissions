@@ -9,8 +9,8 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "player.h"
-#include "../common/common.h"
+#include "../player.h"
+#include "../../common/common.h"
 
 
 
@@ -34,6 +34,7 @@ void send_start_message();
 void send_play_message();
 void send_guess_message();
 void send_quit_message();
+
 
 void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
@@ -82,6 +83,6 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 // Macros
 
 #define ERROR -1
-            
+#define MESSAGE_SIZE 32
 
 #endif /* COMMANDS_H */
