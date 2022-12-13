@@ -79,7 +79,7 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 		get_word(command);
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
-			if (send_start_message(sockets_ds, game_stats) == SUCCESS) {
+			if (send_start_request(sockets_ds, game_stats) == SUCCESS) {
 				print_start(game_stats);
 			}
 		}
