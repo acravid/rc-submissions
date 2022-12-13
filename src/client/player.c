@@ -11,16 +11,11 @@
 #include <string.h>
 #include "player.h"
 #include "commands/commands.h"
-#include "../common/common.h"
-
-
-buffer_typedef(char,byte_buffer);
 
 // prints usage message to stderr
 static void usage() {
 	fprintf(stderr, USAGE_INFO);
 }
-
 
 
 // defines the game server IP and its port based on input arguments
@@ -62,57 +57,31 @@ optional_args parse_opt(int argc, char **argv) {
     return opt_args;
 }
 
-socket_ds  *setup_socket(optional_args opt_args) {
-
-
-	// TODO
-	// add signal handling 
-
-	socket_ds sockets_ds =  { 0, 0, NULL, NULL};
-	socket_ds *socket_ds_ptr = &sockets_ds;
-	
-	udp_setup(&sockets_ds,opt_args);
-
-	//  TCP connection is only started when a certain command is called
-	//  no need to start it at the onset
-	// tcp_setup(&sockets_ds,opt_args);
-
-	return socket_ds_ptr;
-
-
-
+void print_start(game_status* game_stats) {
+	printf("New game started (max %d errors): ", game_stats->errors);
+	for (int i = 1; i <= game_stats->letters; i++) {
+		printf("_ ");
+	}
+	printf("\n");
 }
 
-void handle_input(socket_ds *socket_ds_ptr) {
-
-
-
-    // receives the input
-	byte_buffer input_line;
-	buffer_init(input_line,BUFFER_VALUE,char);
-
-	// same as     char input_line[BUFFER_VALUE];
+void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 
     // receives the command from  stdin 
-    char* command; 
+    char command[MAX_STRING]; 
 
     // reads commands indefinitely until exit is given
     while (PROGRAM_IS_RUNNING) {
 
-
 		// prompt
 		printf("[>]");
 		// get command
-		fgets(input_line.info, input_line.size, stdin);
-		// read up to the string terminator character
-		input_line.info[input_line.size -1 ] = '\0';
-
-
-		// separates the command from the rest of the input
-		command = strtok(input_line.info, " ");
+		get_word(command);
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
-			send_start_message();
+			if (send_start_message(sockets_ds, game_stats) == SUCCESS) {
+				print_start(game_stats);
+			}
 		}
 		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
 			send_play_message();
@@ -139,6 +108,20 @@ void handle_input(socket_ds *socket_ds_ptr) {
     }
 }
 
+void get_word(char* word) {
+	
+	int i = 0;
+	char c = getchar();
+
+	/*starts reading when it finds a non-whitespace char*/
+	for (; c == ' ' || c == '\t'; c = getchar()) {
+	}
+	for (; c != ' ' && c != '\n' && c != '\t' && c != EOF && i <\
+			(MAX_STRING - 1); c = getchar(), i++) {
+		word[i] = c;
+	}
+	word[i] = '\0';
+}
 
 //
 // Function: main
@@ -149,14 +132,21 @@ void handle_input(socket_ds *socket_ds_ptr) {
 //
 // Description:
 //
-//
 // Main program entry point
 //
 int main(int argc, char **argv) {
 
 	optional_args opt_args = parse_opt(argc,argv);
-	socket_ds *socket_ds_ptr = setup_socket(opt_args);
-	handle_input(socket_ds_ptr);
+
+	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
+	udp_setup(sockets_ds, opt_args);
+	
+	game_status* game_stats = (game_status*) malloc(sizeof(game_status));	
+	handle_input(sockets_ds, game_stats);
+	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
+	close(sockets_ds->fd_udp);
+	free(sockets_ds);
+	free(game_stats);
 	exit(EXIT_SUCCESS);
 
 }

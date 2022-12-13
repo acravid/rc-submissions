@@ -9,8 +9,14 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "../player.h"
-#include "../../common/common.h"
 
 
 
@@ -20,8 +26,8 @@ typedef struct {
 
     int fd_udp;
     int fd_tcp;
-    struct addrinfo *addrinfo_udp;
-    struct addrinfo *addrinfo_tcp;
+    struct addrinfo addrinfo_udp, *addrinfo_udp_ptr;
+    struct addrinfo addrinfo_tcp, *addrinfo_tcp_ptr;
 } socket_ds; // socket DATAGRAM STREAM
 
 
@@ -30,9 +36,12 @@ typedef struct {
 // UDP Function Prototypes 
 
 /*Sending messages: */
-void send_start_message();
+int send_start_message(socket_ds*, game_status*);
 void send_play_message();
 void send_guess_message();
+void send_scoreboard_message();
+void send_hint_message();
+void send_state_message();
 void send_quit_message();
 
 
@@ -50,6 +59,9 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define ERROR_ADDR_UDP "\n"\
 						   "An error has occurred\n"\
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
+
+#define ERROR_SEND_UDP "\n"\
+						"UDP: An error has occurred while trying to send data over SOCK_GRAM \n"\
 
 
 
@@ -81,8 +93,12 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 
 // Macros
-
 #define ERROR -1
 #define MESSAGE_SIZE 32
+#define START_REQUEST_SIZE 11
+#define START_RESPONSE_SIZE 12 + 1
+#define RESPONSE_SIZE 128
+#define AUTO_PROTOCOL 0
+enum status_code {OK, WIN, DUP, NOK, OVR, INV, ERR};
 
 #endif /* COMMANDS_H */

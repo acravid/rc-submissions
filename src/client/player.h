@@ -33,13 +33,13 @@
 #define EXIT_COMMAND "exit"
 
 /*Default settings: */
-#define DEFAULT_GSIP "tejo.tecnico.ulisboa.pt"
-#define DEFAULT_GSPORT "58091"
+#define DEFAULT_GSIP "tejo.ist.utl.pt"
+#define DEFAULT_GSPORT "58011"
 
 /*Others: */
 #define PROGRAM_IS_RUNNING 1
 #define EQUAL 0
-#define SUCESS 0
+#define SUCCESS 0
 #define ERROR -1
 
 #define USAGE_INFO  "\n"\
@@ -65,4 +65,10 @@ typedef struct {
     char *port;
 } optional_args;
 
+typedef struct {
+    int letters;
+    int errors;
+} game_status;
+
+void get_word(char*);
 #endif /* PLAYER_H */
