@@ -14,6 +14,8 @@
 /*Maximum values: */
 #define MAX_STRING 65535
 
+#define BUFFER_VALUE 512
+
 /*Commands: */
 #define START_COMMAND "start"
 #define SHORT_START_COMMAND "sg"
