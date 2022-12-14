@@ -38,7 +38,7 @@ typedef struct {
 /*Sending messages: */
 int send_start_request(socket_ds*, game_status*);
 int send_play_request(socket_ds*, game_status*);
-void send_guess_message();
+int send_guess_request(socket_ds*, game_status*);
 int send_quit_request(socket_ds*, game_status*);
 
 
@@ -58,9 +58,15 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
 
 #define ERROR_SEND_UDP "\n"\
+
 						"UDP: An error has occurred while trying to exchange data over SOCK_GRAM \n"\
 
 
+						"UDP: An error has occurred while trying to send data over SOCK_GRAM \n"
+
+
+#define ERROR_RECV_UDP "\n"\
+					   "UDP: An error has occurred while trying to receive data over SOCK_GRAM\n"
 
 
 // TCP Function Prototypes 
@@ -93,6 +99,9 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 
 // Macros
+#define PADDING_NULL_TERMINATOR 1
+#define MAX_WORD_LENGTH 30
+
 #define ERROR -1
 #define MESSAGE_SIZE 32
 #define START_REQUEST_SIZE 11
@@ -101,6 +110,8 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define PLAY_RESPONSE_SIZE 73
 #define SCOREBOARD_REQUEST_SIZE 4
 #define SCOREBOARD_RESPONSE_SIZE 450
+#define GUESS_REQUEST_SIZE 46
+#define GUESS_RESPONSE_SIZE 10
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 4
 #define AUTO_PROTOCOL 0
