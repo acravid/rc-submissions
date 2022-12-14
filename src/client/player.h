@@ -43,6 +43,7 @@
 #define ERROR -1
 #define YES 0
 #define NO 1
+#define MAYBE -1
 
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\

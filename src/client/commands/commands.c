@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "commands.h"
 
 // 
@@ -29,8 +30,8 @@ int process_start_response(char* response, ssize_t ret_recv_udp_response, game_s
 		}
 	}
 	else {
-		// TO DO: mensagem de erro
-		printf("%s", "ERRO\n");
+		game_stats->running = MAYBE;
+		printf("Error. Player ID is invalid or has a game already running on the server.\n");
 		return ERROR;
 	}
 	
@@ -169,7 +170,7 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	}
 	
 	get_word(letter);
-	game_stats->last_letter = letter[0];
+	game_stats->last_letter = toupper(letter[0]);
 	sprintf(request, "PLG %s %s %d\n", game_stats->player_id, letter, game_stats->trial);
 	
 
@@ -228,12 +229,12 @@ int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_st
 		response[START_RESPONSE_SIZE - 1] = '\0';
 	}
 	
+	game_stats->running = NO;
 	// process response
 	if (strcmp(strtok(response, " "), "RQT") == EQUAL)
 		return SUCCESS;
-		
-	// TO DO: mensagem de erro
-	printf("%s", "ERRO\n");
+	
+	printf("Invalid player ID.\n");
 	return ERROR;
 }
 

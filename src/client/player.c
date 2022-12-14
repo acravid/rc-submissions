@@ -90,6 +90,19 @@ void end_game(game_status* game_stats) {
 	}
 }
 
+
+void force_quit(socket_ds* sockets_ds, game_status* game_stats) {
+	char res;
+	printf("Do you want to force quit? [y/n]\n");
+	scanf("%c", &res);
+	if (res != 'n' && res != 'N') {
+		if (send_quit_request(sockets_ds, game_stats) == SUCCESS) {
+			printf("Game quitted.\n");
+		}
+	}
+}
+
+
 void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 
     // receives the command from  stdin 
@@ -104,6 +117,9 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
 			if (send_start_request(sockets_ds, game_stats) == SUCCESS)
 				print_start(game_stats);
+			else {
+				force_quit(sockets_ds, game_stats);
+			}
 		}
 		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
 			if (send_play_request(sockets_ds, game_stats) == SUCCESS) {
@@ -131,7 +147,7 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 			}
 		}
 		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
-			if (game_stats->running == YES && send_quit_request(sockets_ds, game_stats) != SUCCESS)
+			if (game_stats->running == YES &&send_quit_request(sockets_ds, game_stats) != SUCCESS)
 				printf("Error. Couldn't quit the game in the server.\n");
 	    	break; 
 		}
