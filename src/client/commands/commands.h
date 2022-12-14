@@ -37,9 +37,9 @@ typedef struct {
 
 /*Sending messages: */
 int send_start_request(socket_ds*, game_status*);
-void send_play_message();
+int send_play_request(socket_ds*, game_status*);
 void send_guess_message();
-void send_quit_message();
+int send_quit_request(socket_ds*, game_status*);
 
 
 void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
@@ -94,6 +94,10 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define MESSAGE_SIZE 32
 #define START_REQUEST_SIZE 11
 #define START_RESPONSE_SIZE 12 + 1
+#define PLAY_REQUEST_SIZE 15
+#define PLAY_RESPONSE_SIZE 73
+#define QUIT_REQUEST_SIZE 11
+#define QUIT_RESPONSE_SIZE 4
 #define AUTO_PROTOCOL 0
 enum status_code {OK, WIN, DUP, NOK, OVR, INV, ERR};
 

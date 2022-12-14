@@ -41,6 +41,8 @@
 #define EQUAL 0
 #define SUCCESS 0
 #define ERROR -1
+#define YES 0
+#define NO 1
 
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\
@@ -66,8 +68,14 @@ typedef struct {
 } optional_args;
 
 typedef struct {
+	char player_id[7];
     int letters;
     int errors;
+    char* word;
+    char last_letter;
+    int last_play;
+    int running;
+    int trial;
 } game_status;
 
 void get_word(char*);

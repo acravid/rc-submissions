@@ -65,6 +65,31 @@ void print_start(game_status* game_stats) {
 	printf("\n");
 }
 
+void print_play(game_status* game_stats) {
+	if (game_stats->last_play == OK || game_stats->last_play == WIN)
+		printf("Yes, \"%c\" is part of the word: ", game_stats->last_letter);
+	else if (game_stats->last_play == NOK || game_stats->last_play == OVR)
+		printf("No, \"%c\" is not part of the word: ", game_stats->last_letter);
+	else if (game_stats->last_play == DUP)
+		printf("You already guessed \"%c\" as part of the word: ", game_stats->last_letter);
+	for (int i = 0; i <= game_stats->letters - 1; i++) {
+		printf("%c ", game_stats->word[i]);
+	}
+	printf("\n");
+	if (game_stats->last_play == WIN) 
+		printf("WELL DONE! You guessed the word!\n");
+	else if (game_stats->last_play == OVR) 
+		printf("You have no more attempts. You lost.\n");
+}
+
+
+void end_game(game_status* game_stats) {
+	if (game_stats->running == YES) {
+		free(game_stats->word);
+		game_stats->running = NO;
+	}
+}
+
 void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 
     // receives the command from  stdin 
@@ -73,18 +98,19 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
     // reads commands indefinitely until exit is given
     while (PROGRAM_IS_RUNNING) {
 
-		// prompt
-		printf("[>]");
 		// get command
 		get_word(command);
 
 		if (strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
-			if (send_start_request(sockets_ds, game_stats) == SUCCESS) {
+			if (send_start_request(sockets_ds, game_stats) == SUCCESS)
 				print_start(game_stats);
-			}
 		}
 		else if (strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
-			send_play_message();
+			if (send_play_request(sockets_ds, game_stats) == SUCCESS) {
+				print_play(game_stats);
+				if (game_stats->last_play == WIN || game_stats->last_play == OVR)
+					end_game(game_stats);
+			}
 		}
 		else if (strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
 			send_guess_message(); 
@@ -99,10 +125,14 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 			send_state_message(); 
 		}
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
-			send_quit_message(); 
+			if (send_quit_request(sockets_ds, game_stats) == SUCCESS) {
+				printf("Game quitted\n");
+				end_game(game_stats);
+			}
 		}
 		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
-			send_quit_message();
+			if (game_stats->running == YES && send_quit_request(sockets_ds, game_stats) != SUCCESS)
+				printf("Error. Couldn't quit the game in the server.\n");
 	    	break; 
 		}
     }
@@ -141,11 +171,16 @@ int main(int argc, char **argv) {
 	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
 	udp_setup(sockets_ds, opt_args);
 	
-	game_status* game_stats = (game_status*) malloc(sizeof(game_status));	
+	game_status* game_stats = (game_status*) malloc(sizeof(game_status));
+	game_stats->running = NO;
+	//game_stats->trial = 14;
+	//game_stats->word = (char*) malloc(sizeof(char) * 30);
+	//strcpy(game_stats->player_id, "099246");
 	handle_input(sockets_ds, game_stats);
 	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
 	close(sockets_ds->fd_udp);
 	free(sockets_ds);
+	end_game(game_stats);
 	free(game_stats);
 	exit(EXIT_SUCCESS);
 

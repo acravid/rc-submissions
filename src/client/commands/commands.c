@@ -21,6 +21,12 @@ int process_start_response(char* response, ssize_t ret_recv_udp_response, game_s
 	if (strcmp(strtok(response, " "), "RSG") == EQUAL && strcmp(strtok(NULL, " "), "OK") == EQUAL) {
 		game_stats->letters = atoi(strtok(NULL, " "));
 		game_stats->errors = atoi(strtok(NULL, " "));
+		game_stats->running = YES;
+		game_stats->trial = 1;
+		game_stats->word = (char*) malloc(sizeof(char) * game_stats->letters);
+		for (int i = 0; i <= game_stats->letters - 1; i++) {
+			game_stats->word[i] = '_';
+		}
 	}
 	else {
 		// TO DO: mensagem de erro
@@ -55,9 +61,10 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
-	
+
 	// prepare request
 	get_word(player_id);
+	strcpy(game_stats->player_id, player_id);
 	sprintf(request, "SNG %s\n", player_id);
 
 	// send request over to the server
@@ -78,6 +85,62 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 }
 
 
+int process_play_response(char* response, ssize_t ret_recv_udp_response, game_status* game_stats) {
+	// turn response into str
+	if(ret_recv_udp_response < PLAY_RESPONSE_SIZE) {
+		response[ret_recv_udp_response] = '\0';
+	}
+	else {
+		response[PLAY_RESPONSE_SIZE - 1] = '\0';
+	}
+	
+	// process response
+	if (strcmp(strtok(response, " "), "RLG") != EQUAL) {
+		game_stats->last_play = ERR;
+		// TO DO: mensagem de erro
+		printf("%s", "ERRO\n");
+		return ERROR;
+	}
+	char* code = strtok(NULL, " ");
+	if (strcmp(code, "OK") == EQUAL && atoi(strtok(NULL, " ")) == game_stats->trial) {
+		game_stats->last_play = OK;
+		int n = atoi(strtok(NULL, " "));
+		for (; n > 0; n--) {
+			game_stats->word[atoi(strtok(NULL, " ")) - 1] = game_stats->last_letter;
+		}
+		game_stats->trial += 1;
+	}
+	else if (strcmp(code, "WIN") == EQUAL) {
+		game_stats->last_play = WIN;
+		for (int i = 0; i < game_stats->letters; i++) {
+			if (game_stats->word[i] == '_')
+				game_stats->word[i] = game_stats->last_letter;
+		}
+	}
+	else if (strcmp(code, "DUP") == EQUAL) {
+		game_stats->last_play = DUP;
+	}
+	else if (strcmp(code, "NOK") == EQUAL) {
+		game_stats->trial += 1;
+		game_stats->last_play = NOK;
+	}
+	else if (strcmp(code, "OVR") == EQUAL) {
+		game_stats->last_play = OVR;
+	}
+	else if (strcmp(code, "INV") == EQUAL) {
+		game_stats->last_play = INV;
+		printf("%s", "ERRO\n");
+		return ERROR;
+	}
+	else {
+		// TO DO: mensagem de erro
+		printf("%s", "ERRO\n");
+		return ERROR;
+	}
+	
+	return SUCCESS;
+}
+
 //
 // Function:
 //
@@ -89,15 +152,46 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 //
 //
 //
-void send_play_message() {
+int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
+	char letter[MAX_STRING];
+	char request[PLAY_REQUEST_SIZE];
+	char response[PLAY_RESPONSE_SIZE];
+	int ret;
+	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	socklen_t addrlen;
+	struct sockaddr_in addr;
+	addrlen = sizeof(addr);
+	
+	// prepare request
+	if(game_stats->running == NO) {
+		printf("No game running.\n");
+		return ERROR;
+	}
+	
+	get_word(letter);
+	game_stats->last_letter = letter[0];
+	sprintf(request, "PLG %s %s %d\n", game_stats->player_id, letter, game_stats->trial);
+	
 
+	// send request over to the server
+	int request_size = PLAY_REQUEST_SIZE;
+	if (game_stats->trial > 9)
+		request_size++;	
+	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, request_size, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		
+	if(ret_send_udp_request == ERROR) {
+		printf("%s", ERROR_SEND_UDP);
+		return ERROR;
+	}
 
+	// receive the response from the previous request
+	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, PLAY_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+	if(ret_recv_udp_response == ERROR) {
+		printf("%s", ERROR_SEND_UDP);
+		return ERROR;
+	}
 
-
-
-
-
-
+	return process_play_response(response, ret_recv_udp_response, game_stats);
 }
 
 
@@ -124,6 +218,25 @@ void send_guess_message() {
 void send_scoreboard_message() {}
 void send_hint_message() {}
 void send_state_message() {}
+
+int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_status* game_stats) {
+	// turn response into str
+	if(ret_recv_udp_response < START_RESPONSE_SIZE) {
+		response[ret_recv_udp_response] = '\0';
+	}
+	else {
+		response[START_RESPONSE_SIZE - 1] = '\0';
+	}
+	
+	// process response
+	if (strcmp(strtok(response, " "), "RQT") == EQUAL)
+		return SUCCESS;
+		
+	// TO DO: mensagem de erro
+	printf("%s", "ERRO\n");
+	return ERROR;
+}
+
 //
 // Function:
 //
@@ -135,14 +248,39 @@ void send_state_message() {}
 //
 //
 //
-void send_quit_message() {
+int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
+
+	char request[START_REQUEST_SIZE];
+	char response[START_RESPONSE_SIZE];
+	int ret;
+	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	socklen_t addrlen;
+	struct sockaddr_in addr;
+	addrlen = sizeof(addr);
+	
+	// prepare request
+	if(game_stats->running == NO) {
+		printf("No game running.\n");
+		return ERROR;
+	}
+	sprintf(request, "QUT %s\n", game_stats->player_id);
 
 
+	// send request over to the server
+	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, QUIT_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+	if(ret_send_udp_request == ERROR) {
+		printf("%s", ERROR_SEND_UDP);
+		return ERROR;
+	}
 
-
-
-
-
+	// receive the response from the previous request
+	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, QUIT_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+	if(ret_recv_udp_response == ERROR) {
+		printf("%s", ERROR_SEND_UDP);
+		return ERROR;
+	}
+	
+	return process_quit_response(response, ret_recv_udp_response, game_stats);
 }
 
 
