@@ -103,7 +103,16 @@ void force_quit(socket_ds* sockets_ds, game_status* game_stats) {
 }
 
 
-void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
+void print_scoreboard(game_status* game_stats) {
+	FILE* file = fopen(game_stats->scoreboard_filename, "r");
+	int c;
+	while ((c = fgetc(file)) != EOF)
+		printf("%c", c);
+	fclose(file);
+}
+
+
+void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 
     // receives the command from  stdin 
     char command[MAX_STRING]; 
@@ -132,7 +141,8 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 			send_guess_message(); 
 		}
 		else if (strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
-			send_scoreboard_message();
+			if (send_scoreboard_request(sockets_ds, opt_args, game_stats) == SUCCESS)
+				print_scoreboard(game_stats);
 		}
 		else if (strcmp(command, HINT_COMMAND) == EQUAL || strcmp(command, SHORT_HINT_COMMAND) == EQUAL) {
 			send_hint_message();
@@ -192,7 +202,9 @@ int main(int argc, char **argv) {
 	//game_stats->trial = 14;
 	//game_stats->word = (char*) malloc(sizeof(char) * 30);
 	//strcpy(game_stats->player_id, "099246");
-	handle_input(sockets_ds, game_stats);
+	handle_input(sockets_ds, opt_args, game_stats);
+
+	// Exiting
 	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
 	close(sockets_ds->fd_udp);
 	free(sockets_ds);

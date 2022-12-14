@@ -13,8 +13,8 @@
 
 /*Maximum values: */
 #define MAX_STRING 65535
-
-#define BUFFER_VALUE 512
+#define BUFFER_SIZE 512
+#define MAX_FILENAME 28
 
 /*Commands: */
 #define START_COMMAND "start"
@@ -44,6 +44,9 @@
 #define YES 0
 #define NO 1
 #define MAYBE -1
+#define SCOREBOARD_PATHNAME "./"
+#define SCOREBOARD_PATHNAME_SIZE 2
+
 
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\
@@ -77,6 +80,7 @@ typedef struct {
     int last_play;
     int running;
     int trial;
+    char scoreboard_filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
 } game_status;
 
 void get_word(char*);

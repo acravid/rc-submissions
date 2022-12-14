@@ -216,9 +216,6 @@ void send_guess_message() {
 
 }
 
-void send_scoreboard_message() {}
-void send_hint_message() {}
-void send_state_message() {}
 
 int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_status* game_stats) {
 	// turn response into str
@@ -314,39 +311,140 @@ void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 //  TCP Module
 // 
 
-/*
 void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 
-
-	int errno;
-
-    sockets_ds->fd_tcp = socket(AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
-
-
+    sockets_ds->fd_tcp = socket(AF_INET, SOCK_STREAM, AUTO_PROTOCOL);
 	if(sockets_ds->fd_tcp == ERROR) {
 		fprintf(stderr,ERROR_FD_TCP);
 		exit(EXIT_FAILURE);
 	}
 
-	//set hints args and get the internet address
-
-    sockets_ds->addrinfo_tcp = getaddrinfo_extended(opt_args.ip,opt_args.port,AF_INET,SOCK_STREAM,AUTO_PROTOCOL);
-
-	if(sockets_ds->addrinfo_tcp == NULL) {
-        // Failed to get an internet address 
+	memset(&sockets_ds->addrinfo_tcp, 0, sizeof(sockets_ds->addrinfo_tcp));
+    // set hints
+    sockets_ds->addrinfo_tcp.ai_family = AF_INET; //IPv4
+    sockets_ds->addrinfo_tcp.ai_socktype = SOCK_STREAM;  //TCP socket
+    int ret = getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_tcp, &sockets_ds->addrinfo_tcp_ptr);
+	if(ret != SUCCESS) {
+        // Failed to get an internet address
+        freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+		close(sockets_ds->fd_tcp);
 		fprintf(stderr,ERROR_ADDR_TCP);
 		exit(EXIT_FAILURE);
 
     }
  
-	// if the connection or binding succeeds,zero is returned.
-	// On error, -1 is returned, and errno is set to indicate the error.
-	// Reference: man pages
-	errno = connect(sockets_ds->fd_tcp, sockets_ds->addrinfo_tcp->ai_addr, sockets_ds->addrinfo_tcp->ai_addrlen);
-	
-    if( errno == ERROR) {
+	ret = connect(sockets_ds->fd_tcp, sockets_ds->addrinfo_tcp_ptr->ai_addr, sockets_ds->addrinfo_tcp_ptr->ai_addrlen);
+    if(ret == ERROR) {
+    	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+		close(sockets_ds->fd_tcp);
 		fprintf(stderr,ERROR_TCP_CONNECT);
 		exit(EXIT_FAILURE);
 	}
 
-}*/
+}
+
+int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_status* game_stats) {
+	
+	char filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
+	int filesize;
+	ssize_t n;
+	char info[39];
+	
+	// read status
+	n = read(sockets_ds->fd_tcp, info, 6);
+	if (n != 3 && n != 6) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+	info[n] = '\0';
+	if (strcmp(info, "EMPTY") == EQUAL) {
+		printf("Scoreboard is empty.");
+		return ERROR;
+	}
+	
+	// read filename and size
+	n = read(sockets_ds->fd_tcp, info, 39);
+	if (n == -1) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+	info[n] = '\0';
+	strcpy(filename, strtok(info, " "));
+	filesize = atoi(strtok(NULL, " "));
+	char* filedata = (char*) malloc(sizeof(char) * (filesize));
+	
+	// if last read got part of the file data, copy that part to filedata and move the buffer
+	strcpy(filedata, strtok(NULL, " "));
+	if (filedata != NULL) r_buffer = strlen(filedata);
+	
+	// read filedata
+	while (r_buffer < filesize) {
+		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+	}
+
+	sprintf(game_stats->scoreboard_filename, "%s%s", SCOREBOARD_PATHNAME, filename);
+	FILE* file = fopen(game_stats->scoreboard_filename, "w");
+	if (file == NULL) return ERROR;
+	
+	for (int i = 0; i < filesize; i++) {
+	    if (fputc(filedata[i], file) == EOF)
+            return ERROR;
+    }
+
+	fclose(file);
+	return SUCCESS;
+}
+
+
+
+int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
+	char code[4];
+	ssize_t n;
+	size_t r_buffer = 0;
+
+	tcp_setup(sockets_ds, opt_args);
+
+	// send request over to the server
+	n = write(sockets_ds->fd_tcp, "GSB\n", SCOREBOARD_REQUEST_SIZE);
+	if (n != SCOREBOARD_REQUEST_SIZE) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+	
+	// receive the response from the previous request
+	n = read(sockets_ds->fd_tcp, code, 4);
+	if (n != 4) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+
+	// turn code into a string
+	code[3] = '\0';
+	if (strcmp(code, "RSB") != EQUAL) {
+		printf("ERRO\n");
+		return ERROR;
+	}
+
+	int res = process_scoreboard_response(sockets_ds, r_buffer, game_stats);
+	
+	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+	close(sockets_ds->fd_tcp);
+	
+	return res;
+}
+
+
+
+
+
+void send_hint_message() {}
+void send_state_message() {}
+
+
+
+

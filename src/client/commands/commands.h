@@ -58,14 +58,14 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
 
 #define ERROR_SEND_UDP "\n"\
-						"UDP: An error has occurred while trying to send data over SOCK_GRAM \n"\
+						"UDP: An error has occurred while trying to exchange data over SOCK_GRAM \n"\
 
 
 
 
 // TCP Function Prototypes 
 
-void send_scoreboard_message();
+int send_scoreboard_request(socket_ds*, optional_args, game_status*);
 void send_hint_message();
 void send_state_message();
 
@@ -87,6 +87,9 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define ERROR_ADDR_TCP "\n"\
 					  "An error has occurred\n"\
 					  "TCP: The request (getaddrinfo) was not successful\n"
+					  
+#define ERROR_SEND_TCP "\n"\
+						"TCP: An error has occurred while exchanging data \n"\
 
 
 // Macros
@@ -96,6 +99,8 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 #define START_RESPONSE_SIZE 12 + 1
 #define PLAY_REQUEST_SIZE 15
 #define PLAY_RESPONSE_SIZE 73
+#define SCOREBOARD_REQUEST_SIZE 4
+#define SCOREBOARD_RESPONSE_SIZE 450
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 4
 #define AUTO_PROTOCOL 0
