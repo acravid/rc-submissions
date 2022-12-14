@@ -94,8 +94,8 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 	else {
 		response[PLAY_RESPONSE_SIZE - 1] = '\0';
 	}
-	printf("formatted response:\n");
-	printf("%s\n",response);
+
+
 	// process response
 	if (strcmp(strtok(response, " "), "RLG") != EQUAL) {
 		game_stats->last_play = ERR;
@@ -175,7 +175,6 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	game_stats->last_letter = toupper(letter[0]);
 	sprintf(request, "PLG %s %s %d\n", game_stats->player_id, letter, game_stats->trial);
 	
-	printf("%s",request);
 	// send request over to the server
 	int request_size = PLAY_REQUEST_SIZE;
 	if (game_stats->trial > 9)
@@ -221,9 +220,6 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 		response[GUESS_RESPONSE_SIZE - 1] = '\0';
 		
 	}
-
-	printf("Received response:\n");	
-	printf("%s\n",response);
 
 	// process response
 	if (strcmp(strtok(response, " "), "RWG") != EQUAL) {
@@ -285,7 +281,6 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 //
 //
 int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
-
 
 	char word[MAX_WORD_LENGTH + PADDING_NULL_TERMINATOR];
 	char request[GUESS_REQUEST_SIZE];

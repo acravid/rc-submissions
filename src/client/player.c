@@ -88,9 +88,9 @@ void print_play(game_status* game_stats) {
 void print_guess(game_status* game_stats) {
 	
 	if(game_stats->last_play == OK || game_stats->last_play == WIN){
-		printf("WELL DONE ! You guessed: %s",game_stats->word);
+		printf("WELL DONE ! You guessed: %s", game_stats->word);
 	}
-	printf("\n");
+
 	if(game_stats->last_play == NOK) {
 		printf("The word is not correct, you can try again. Non zero attempts\n");
 	}

@@ -58,11 +58,7 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 						   "UDP: The request (getaddrinfo) was not satisfied\n"
 
 #define ERROR_SEND_UDP "\n"\
-
-						"UDP: An error has occurred while trying to exchange data over SOCK_GRAM \n"\
-
-
-						"UDP: An error has occurred while trying to send data over SOCK_GRAM \n"
+							"UDP: An error has occurred while trying to exchange data over SOCK_GRAM \n"\
 
 
 #define ERROR_RECV_UDP "\n"\
