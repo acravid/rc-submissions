@@ -66,6 +66,7 @@ void print_start(game_status* game_stats) {
 }
 
 void print_play(game_status* game_stats) {
+	
 	if (game_stats->last_play == OK || game_stats->last_play == WIN)
 		printf("Yes, \"%c\" is part of the word: ", game_stats->last_letter);
 	else if (game_stats->last_play == NOK || game_stats->last_play == OVR)
@@ -80,8 +81,34 @@ void print_play(game_status* game_stats) {
 		printf("WELL DONE! You guessed the word!\n");
 	else if (game_stats->last_play == OVR) 
 		printf("You have no more attempts. You lost.\n");
+
 }
 
+// TODO: rewrite display messages
+void print_guess(game_status* game_stats) {
+	
+	if(game_stats->last_play == OK || game_stats->last_play == WIN){
+		printf("WELL DONE ! You guessed: %s",game_stats->word);
+	}
+	printf("\n");
+	if(game_stats->last_play == NOK) {
+		printf("The word is not correct, you can try again. Non zero attempts\n");
+	}
+	else if(game_stats->last_play == OVR) {
+		printf("The guess is not correct. No attempts left.\n You lost.\n");
+	}
+	else if(game_stats->last_play == INV) {
+		// NOTE:
+		// think of a better message 
+		printf("INV\n");
+	}
+	else if(game_stats->last_play == ERR) {
+		// NOTE:
+		// think of a better message
+		printf("ERR");
+	}
+
+}
 
 void end_game(game_status* game_stats) {
 	if (game_stats->running == YES) {
@@ -129,7 +156,13 @@ void handle_input(socket_ds* sockets_ds, game_status* game_stats) {
 			}
 		}
 		else if (strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
-			send_guess_message(); 
+			if(send_guess_request(sockets_ds,game_stats) == SUCCESS) {
+				print_guess(game_stats);
+				if (game_stats->last_play == WIN || game_stats->last_play == OVR)
+					end_game(game_stats);
+				
+			}
+			
 		}
 		else if (strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
 			send_scoreboard_message();
