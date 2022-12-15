@@ -139,6 +139,11 @@ void print_scoreboard(game_status* game_stats) {
 }
 
 
+void print_hint(game_status* game_stats, int size) {
+	printf("Recieved file %s (%d Bytes) with a hint.\n", game_stats->hint_filename, size);
+}
+
+
 void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 
     // receives the command from  stdin 
@@ -168,8 +173,7 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 			if(send_guess_request(sockets_ds,game_stats) == SUCCESS) {
 				print_guess(game_stats);
 				if (game_stats->last_play == WIN || game_stats->last_play == OVR)
-					end_game(game_stats);
-				
+					end_game(game_stats);				
 			}
 			
 		}
@@ -178,7 +182,9 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 				print_scoreboard(game_stats);
 		}
 		else if (strcmp(command, HINT_COMMAND) == EQUAL || strcmp(command, SHORT_HINT_COMMAND) == EQUAL) {
-			send_hint_message();
+			int hint_filesize = send_hint_request(sockets_ds, opt_args,  game_stats);
+			if (hint_filesize != ERROR)
+				print_hint(game_stats, hint_filesize);
 		}
 		else if (strcmp(command, STATE_COMMAND) == EQUAL || strcmp(command, SHORT_STATE_COMMAND) == EQUAL) {
 			send_state_message(); 

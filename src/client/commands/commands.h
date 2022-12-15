@@ -23,13 +23,11 @@
 // Structure that stores information related to SOCKET communication 
 // both DATAGRAM AND STREAM SOCKETS
 typedef struct {
-
     int fd_udp;
     int fd_tcp;
     struct addrinfo addrinfo_udp, *addrinfo_udp_ptr;
     struct addrinfo addrinfo_tcp, *addrinfo_tcp_ptr;
 } socket_ds; // socket DATAGRAM STREAM
-
 
 
 
@@ -68,7 +66,7 @@ void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
 // TCP Function Prototypes 
 
 int send_scoreboard_request(socket_ds*, optional_args, game_status*);
-void send_hint_message();
+int send_hint_request(socket_ds*, optional_args, game_status*);
 void send_state_message();
 
 void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
@@ -100,14 +98,15 @@ void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
 
 #define ERROR -1
 #define MESSAGE_SIZE 32
+#define MAX_FILE_INFO_SIZE MAX_FILENAME + MAX_FILE_SIZE_DIGITS + 5
 #define START_REQUEST_SIZE 11
 #define START_RESPONSE_SIZE 12 + 1
 #define PLAY_REQUEST_SIZE 15
 #define PLAY_RESPONSE_SIZE 73
-#define SCOREBOARD_REQUEST_SIZE 4
-#define SCOREBOARD_RESPONSE_SIZE 450
 #define GUESS_REQUEST_SIZE 46
 #define GUESS_RESPONSE_SIZE 10
+#define SCOREBOARD_REQUEST_SIZE 4
+#define HINT_REQUEST_SIZE 11
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 4
 #define AUTO_PROTOCOL 0

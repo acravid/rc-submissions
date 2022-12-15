@@ -443,12 +443,13 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 
 }
 
-int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_status* game_stats) {
+int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	char filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
 	int filesize;
 	ssize_t n;
 	char info[39];
+	size_t r_buffer = 0;
 	
 	// read status
 	n = read(sockets_ds->fd_tcp, info, 6);
@@ -458,7 +459,7 @@ int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_sta
 	}
 	info[n] = '\0';
 	if (strcmp(info, "EMPTY") == EQUAL) {
-		printf("Scoreboard is empty.");
+		printf("Scoreboard is empty.\n");
 		return ERROR;
 	}
 	
@@ -468,7 +469,7 @@ int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_sta
 		printf(ERROR_SEND_TCP);
 		return ERROR;
 	}
-	info[n] = '\0';
+	
 	strcpy(filename, strtok(info, " "));
 	filesize = atoi(strtok(NULL, " "));
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));
@@ -495,7 +496,8 @@ int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_sta
 	    if (fputc(filedata[i], file) == EOF)
             return ERROR;
     }
-
+    
+	free(filedata);
 	fclose(file);
 	return SUCCESS;
 }
@@ -505,7 +507,6 @@ int process_scoreboard_response(socket_ds* sockets_ds, size_t r_buffer, game_sta
 int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 	char code[4];
 	ssize_t n;
-	size_t r_buffer = 0;
 
 	tcp_setup(sockets_ds, opt_args);
 
@@ -530,7 +531,7 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 		return ERROR;
 	}
 
-	int res = process_scoreboard_response(sockets_ds, r_buffer, game_stats);
+	int res = process_scoreboard_response(sockets_ds, game_stats);
 	
 	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
 	close(sockets_ds->fd_tcp);
@@ -539,10 +540,130 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 }
 
 
+int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
+
+	char file_info[MAX_FILE_INFO_SIZE];
+	char status[4];
+	char filename[MAX_FILENAME + HINT_PATHNAME_SIZE];
+	int filesize;
+	ssize_t n = 0;
+	size_t r_buffer = 0;
+	
+	// read status filename filesize
+	int count = 0;
+	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+		if (file_info[r_buffer - 1] == ' ') count++;
+	}
+
+	sscanf(file_info, "%s %s %d ", status, filename, &filesize);
+
+	if (strcmp(status, "NOK") == EQUAL) {
+		printf("The server has no hints for you. Sorry.\n");
+		return ERROR;
+	}
+	
+	char* filedata = (char*) malloc(sizeof(char) * (filesize));
+	
+	
+	// read filedata
+	r_buffer = 0;
+	while (r_buffer < filesize) {
+		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+	}
+
+	sprintf(game_stats->hint_filename, "%s%s", HINT_PATHNAME, filename);
+	FILE* file = fopen(game_stats->hint_filename, "w");
+	if (file == NULL) return ERROR;
+	
+	for (int i = 0; i < filesize; i++) {
+	    if (fputc(filedata[i], file) == EOF)
+            return ERROR;
+    }
+
+	free(filedata);
+	fclose(file);
+	return filesize;
+}
+
+int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
+	char request[HINT_REQUEST_SIZE];
+	char code[4];
+	ssize_t n;
+	
+	// prepare request
+	if(game_stats->running == NO) {
+		printf("No game running.\n");
+		return ERROR;
+	}
+	sprintf(request, "GHL %s\n", game_stats->player_id);
+	
+	tcp_setup(sockets_ds, opt_args);
+
+	// send request over to the server
+	n = write(sockets_ds->fd_tcp, request, HINT_REQUEST_SIZE);
+	if (n != HINT_REQUEST_SIZE) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+	
+	// receive the response from the previous request
+	n = read(sockets_ds->fd_tcp, code, 4);
+	if (n != 4) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+
+	// turn code into a string
+	code[3] = '\0';
+	if (strcmp(code, "RHL") != EQUAL) {
+		printf("ERRO\n");
+		return ERROR;
+	}
+
+	int hint_filesize = process_hint_response(sockets_ds, game_stats);
+	
+	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+	close(sockets_ds->fd_tcp);
+	
+	return hint_filesize;
 
 
 
-void send_hint_message() {}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void send_state_message() {}
 
 
