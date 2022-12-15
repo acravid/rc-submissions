@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <ctype.h>
+
 #include "../player.h"
 
 
@@ -29,6 +30,7 @@ typedef struct {
     int fd_tcp;
     struct addrinfo addrinfo_udp, *addrinfo_udp_ptr;
     struct addrinfo addrinfo_tcp, *addrinfo_tcp_ptr;
+	
 } socket_ds; // socket DATAGRAM STREAM
 
 
@@ -43,7 +45,7 @@ int send_guess_request(socket_ds*, game_status*);
 int send_quit_request(socket_ds*, game_status*);
 
 
-void udp_setup(socket_ds *sockets_ds,optional_args opt_args);
+void udp_setup(socket_ds*,optional_args);
 
 //  UDP Error messages
 
@@ -72,7 +74,7 @@ int send_scoreboard_request(socket_ds*, optional_args, game_status*);
 void send_hint_message();
 void send_state_message();
 
-void tcp_setup(socket_ds *sockets_ds,optional_args opt_args);
+void tcp_setup(socket_ds*,optional_args);
 
 
 //  TCP Error messages
