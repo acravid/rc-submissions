@@ -72,20 +72,25 @@ typedef struct {
 
     char *ip;
     char *port;
+
 } optional_args;
 
 typedef struct {
+    
 	char player_id[7];
     int letters;
     int errors;
     char* word;
+    char* guess;
     char last_letter;
     int last_play;
     int running;
     int trial;
     char scoreboard_filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
     char hint_filename[MAX_FILENAME + HINT_PATHNAME_SIZE];
+
 } game_status;
 
 void get_word(char*);
+void upcase_word(char*);
 #endif /* PLAYER_H */
