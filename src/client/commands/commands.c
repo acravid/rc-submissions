@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "commands.h"
 
 // 
@@ -231,6 +230,7 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 
 	char* status_code = strtok(NULL, " ");
 
+	
 	if (strcmp(status_code, "OK") == EQUAL && atoi(strtok(NULL, " ")) == game_stats->trial) {
 		game_stats->last_play = OK;
 		int n = atoi(strtok(NULL, " "));
@@ -241,10 +241,6 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	}
 	else if (strcmp(status_code, "WIN") == EQUAL) {
 		game_stats->last_play = WIN;
-		for (int i = 0; i < game_stats->letters; i++) {
-			if (game_stats->word[i] == '_')
-				game_stats->word[i] = game_stats->last_letter;
-		}
 	}
 	else if (strcmp(status_code, "NOK") == EQUAL) {
 		game_stats->trial += 1;
@@ -292,8 +288,10 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	addrlen = sizeof(addr);
 
 	// prepare request
-	get_word(word);
+	get_word_upcase(word);
 	memset(request,'\0',sizeof(request));
+	game_stats->guess = word;
+	printf("O guess: %s",game_stats->guess);
 	sprintf(request, "PWG %s %s %d\n",game_stats->player_id,word,game_stats->trial);
 
 	// send request over to the server

@@ -76,6 +76,7 @@ typedef struct {
     int letters;
     int errors;
     char* word;
+    char* guess;
     char last_letter;
     int last_play;
     int running;
@@ -84,4 +85,5 @@ typedef struct {
 } game_status;
 
 void get_word(char*);
+void get_word_upcase(char*);
 #endif /* PLAYER_H */
