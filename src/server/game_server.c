@@ -43,14 +43,12 @@ static void usage() {
 //
 input_args parse_args(int argc, char **argv) {
 
-
     if(argc == 1 || argc > 5) {
 	    usage();
 	    exit(EXIT_FAILURE);
     }
 
   	input_args args = { .port = DEFAULT_GSPORT , .verbose_flag = false };
-
 
     if(argc >= 2) {
         
@@ -70,6 +68,8 @@ input_args parse_args(int argc, char **argv) {
 		}                
 
     }
+
+	return args;
     
 }
 
