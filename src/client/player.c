@@ -154,9 +154,19 @@ void print_scoreboard(game_status* game_stats) {
 
 
 void print_hint(game_status* game_stats, int size) {
-	printf("Recieved file %s (%d Bytes) with a hint.\n", game_stats->hint_filename, size);
+	printf("Received file %s (%d Bytes) with a hint.\n", game_stats->hint_filename, size);
 }
 
+
+void print_state(game_status* game_stats) {
+
+	FILE* file = fopen(game_stats->state_filename, "r");
+	int c;
+	while ((c = fgetc(file)) != EOF)
+		printf("%c", c);
+	fclose(file);
+
+}
 
 void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 
@@ -201,7 +211,11 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 				print_hint(game_stats, hint_filesize);
 		}
 		else if (strcmp(command, STATE_COMMAND) == EQUAL || strcmp(command, SHORT_STATE_COMMAND) == EQUAL) {
-			send_state_message(); 
+			if(send_state_request(sockets_ds, opt_args, game_stats) == SUCCESS) {
+				print_state(game_stats);
+				if(strcmp(game_stats->state_status, "FIN") == EQUAL)
+					end_game(game_stats);
+			}
 		}
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
 			if (send_quit_request(sockets_ds, game_stats) == SUCCESS) {

@@ -70,7 +70,7 @@ void udp_setup(socket_ds*,optional_args);
 
 int send_scoreboard_request(socket_ds*, optional_args, game_status*);
 int send_hint_request(socket_ds*, optional_args, game_status*);
-void send_state_message();
+int send_state_request(socket_ds*, optional_args, game_status*);
 
 void tcp_setup(socket_ds*,optional_args);
 
@@ -110,6 +110,7 @@ void tcp_setup(socket_ds*,optional_args);
 #define GUESS_RESPONSE_SIZE 10
 #define SCOREBOARD_REQUEST_SIZE 4
 #define HINT_REQUEST_SIZE 11
+#define STATE_REQUEST_SIZE 11
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 4
 #define AUTO_PROTOCOL 0

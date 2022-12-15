@@ -49,6 +49,8 @@
 #define SCOREBOARD_PATHNAME_SIZE 2
 #define HINT_PATHNAME "./"
 #define HINT_PATHNAME_SIZE 2
+#define STATE_PATHNAME "./"
+#define STATE_PATHNAME_SIZE 2
 
 
 #define USAGE_INFO  "\n"\
@@ -88,6 +90,8 @@ typedef struct {
     int trial;
     char scoreboard_filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
     char hint_filename[MAX_FILENAME + HINT_PATHNAME_SIZE];
+    char state_filename[MAX_FILENAME + STATE_PATHNAME_SIZE];
+    char state_status[4];
 
 } game_status;
 

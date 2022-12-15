@@ -692,7 +692,102 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 }
 
 
-void send_state_message() {}
+int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
+
+	char file_info[MAX_FILE_INFO_SIZE];
+	char filename[MAX_FILENAME + STATE_PATHNAME_SIZE];
+	int filesize;
+	ssize_t n = 0;
+	size_t r_buffer = 0;
+	
+	// read status filename filesize
+	int count = 0;
+	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+		if (file_info[r_buffer - 1] == ' ') count++;
+	}
+
+	sscanf(file_info, "%s %s %d ", game_stats->state_status, filename, &filesize);
+
+	if (strcmp(game_stats->state_status, "NOK") == EQUAL) {
+		printf("Error. Invalid player ID or no games (active or finished) for that player in the server.\n");
+		return ERROR;
+	}
+	
+	char* filedata = (char*) malloc(sizeof(char) * (filesize));
+	
+	
+	// read filedata
+	r_buffer = 0;
+	while (r_buffer < filesize) {
+		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+	}
+
+	FILE* file = fopen(game_stats->state_filename, "w");
+	if (file == NULL) {
+		printf("Error. Couldn't save file.");
+		return ERROR;
+	}
+	for (int i = 0; i < filesize; i++) {
+	    if (fputc(filedata[i], file) == EOF)
+            return ERROR;
+    }
+
+	free(filedata);
+	fclose(file);
+	
+	return SUCCESS;
+}
+
+
+int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
+	char request[HINT_REQUEST_SIZE];
+	char code[4];
+	ssize_t n;
+	
+	// prepare request
+	sprintf(request, "STA %s\n", game_stats->player_id);
+	
+	tcp_setup(sockets_ds, opt_args);
+
+	// send request over to the server
+	n = write(sockets_ds->fd_tcp, request, STATE_REQUEST_SIZE);
+	if (n != STATE_REQUEST_SIZE) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+	
+	// receive the response from the previous request
+	n = read(sockets_ds->fd_tcp, code, 4);
+	if (n != 4) {
+		printf(ERROR_SEND_TCP);
+		return ERROR;
+	}
+
+	// turn code into a string
+	code[3] = '\0';
+	if (strcmp(code, "RST") != EQUAL) {
+		printf("ERRO\n");
+		return ERROR;
+	}
+
+	int res = process_state_response(sockets_ds, game_stats);
+	
+	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+	close(sockets_ds->fd_tcp);
+	
+	return res;
+}
 
 
 
