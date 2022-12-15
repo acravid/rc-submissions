@@ -91,7 +91,7 @@ void print_guess(game_status* game_stats) {
 	if(game_stats->last_play == OK || game_stats->last_play == WIN){
 		int i;
 		int len = strlen(game_stats->guess);
-		printf("WELL DONE ! You guessed: ");
+		printf("WELL DONE! You guessed: ");
 		for(int i = 0; game_stats->guess[i] != '\0';i++) {
 			printf(i == len -1?"%c\n":"%c ",game_stats->guess[i]);
 		}
@@ -220,19 +220,12 @@ void get_word(char* word) {
 }
 
 
-void get_word_upcase(char* word) {
-	
-	int i = 0;
-	char c = getchar();
+void upcase_word(char* word) {
 
-	/*starts reading when it finds a non-whitespace char*/
-	for (; c == ' ' || c == '\t'; c = getchar()) {
-	}
-	for (; c != ' ' && c != '\n' && c != '\t' && c != EOF && i <\
-			(MAX_STRING - 1); c = getchar(), i++) {
-		word[i] = toupper(c);
-	}
-	word[i] = '\0';
+	do {
+		*word = toupper((unsigned char)*word);
+	}while(*word++);
+
 }
 
 //

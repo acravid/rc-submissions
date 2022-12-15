@@ -231,7 +231,7 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	char* status_code = strtok(NULL, " ");
 
 	
-	if (strcmp(status_code, "OK") == EQUAL && atoi(strtok(NULL, " ")) == game_stats->trial) {
+	if(strcmp(status_code, "OK") == EQUAL && atoi(strtok(NULL, " ")) == game_stats->trial) {
 		game_stats->last_play = OK;
 		int n = atoi(strtok(NULL, " "));
 		for (; n > 0; n--) {
@@ -239,22 +239,22 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 		}
 		game_stats->trial += 1;
 	}
-	else if (strcmp(status_code, "WIN") == EQUAL) {
+	else if(strcmp(status_code, "WIN") == EQUAL) {
 		game_stats->last_play = WIN;
 	}
-	else if (strcmp(status_code, "NOK") == EQUAL) {
+	else if(strcmp(status_code, "NOK") == EQUAL) {
 		game_stats->trial += 1;
 		game_stats->last_play = NOK;
 	}
-	else if (strcmp(status_code, "OVR") == EQUAL) {
+	else if(strcmp(status_code, "OVR") == EQUAL) {
 		game_stats->last_play = OVR;
 	}
-	else if (strcmp(status_code, "INV") == EQUAL) {
+	else if(strcmp(status_code, "INV") == EQUAL) {
 		game_stats->last_play = INV;
 		printf("%s", "ERRO\n");
 		return ERROR;
 	}
-	else {
+	else{
 		// TO DO: error message
 		// received status_code does not match known 
 		printf("%s", "ERRO\n");
@@ -288,10 +288,10 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	addrlen = sizeof(addr);
 
 	// prepare request
-	get_word_upcase(word);
+	get_word(word);
+	upcase_word(word);
 	memset(request,'\0',sizeof(request));
 	game_stats->guess = word;
-	printf("O guess: %s",game_stats->guess);
 	sprintf(request, "PWG %s %s %d\n",game_stats->player_id,word,game_stats->trial);
 
 	// send request over to the server

@@ -85,5 +85,5 @@ typedef struct {
 } game_status;
 
 void get_word(char*);
-void get_word_upcase(char*);
+void upcase_word(char* word);
 #endif /* PLAYER_H */
