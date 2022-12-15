@@ -112,7 +112,7 @@ void tcp_setup(socket_ds*,optional_args);
 #define HINT_REQUEST_SIZE 11
 #define STATE_REQUEST_SIZE 11
 #define QUIT_REQUEST_SIZE 11
-#define QUIT_RESPONSE_SIZE 4
+#define QUIT_RESPONSE_SIZE 8
 #define AUTO_PROTOCOL 0
 enum status_code {OK, WIN, DUP, NOK, OVR, INV, ERR};
 

@@ -335,12 +335,16 @@ int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_st
 	
 	game_stats->running = NO;
 	// process response
-	if(strcmp(strtok(response, " "), "RQT") == EQUAL)
-		return SUCCESS;
+	if (strcmp(strtok(response, " "), "RQT") != EQUAL) {
+		printf("Error.\n");
+		return ERROR;
+	}
+	if (strcmp(strtok(NULL, "\n"), "ERR") == EQUAL) {
+		printf("Invalid player ID.\n");
+		return ERROR;
+	}
 	
-	printf("Invalid player ID.\n");
-	return ERROR;
-
+	return SUCCESS;
 }
 
 
@@ -478,43 +482,38 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 //
 //
 int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) {
-	
+
+	char file_info[MAX_FILE_INFO_SIZE];
 	char filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
 	int filesize;
-	ssize_t n;
-	char info[39];
+	char status[6];
+	ssize_t n = 0;
 	size_t r_buffer = 0;
 	
-	// read status
-	n = read(sockets_ds->fd_tcp, info, 6);
-	if(n != 3 && n != 6) {
-		printf(ERROR_SEND_TCP);
-		return ERROR;
+	// read status filename filesize
+	int count = 0;
+	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
+		if (n == ERROR) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		r_buffer += n;
+		if (file_info[r_buffer - 1] == ' ') count++;
 	}
-	info[n] = '\0';
 
-	if (strcmp(info, "EMPTY") == EQUAL) {
+	sscanf(file_info, "%s %s %d ", status, filename, &filesize);
+
+	if (strcmp(status, "EMPTY") == EQUAL) {
 		printf("Scoreboard is empty.\n");
 		return ERROR;
 	}
 	
-	// read filename and size
-	n = read(sockets_ds->fd_tcp, info, 39);
-	if(n == -1) {
-		printf(ERROR_SEND_TCP);
-		return ERROR;
-	}
-	
-	strcpy(filename, strtok(info, " "));
-	filesize = atoi(strtok(NULL, " "));
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));
 	
-	// if last read got part of the file data, copy that part to filedata and move the buffer
-	strcpy(filedata, strtok(NULL, " "));
-	if(filedata != NULL) r_buffer = strlen(filedata);
-	
 	// read filedata
-	while(r_buffer < filesize) {
+	r_buffer = 0;
+	while (r_buffer < filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR) {
 			printf(ERROR_SEND_TCP);
@@ -522,18 +521,21 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 		}
 		r_buffer += n;
 	}
-
+	
 	sprintf(game_stats->scoreboard_filename, "%s%s", SCOREBOARD_PATHNAME, filename);
 	FILE* file = fopen(game_stats->scoreboard_filename, "w");
-	if(file == NULL) return ERROR;
-	
-	for(int i = 0; i < filesize; i++) {
-	    if(fputc(filedata[i], file) == EOF)
+	if (file == NULL) {
+		printf("Error. Couldn't save file.");
+		return ERROR;
+	}
+	for (int i = 0; i < filesize; i++) {
+	    if (fputc(filedata[i], file) == EOF)
             return ERROR;
     }
-    
+
 	free(filedata);
 	fclose(file);
+	
 	return SUCCESS;
 
 }
@@ -732,7 +734,8 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 		}
 		r_buffer += n;
 	}
-
+	
+	sprintf(game_stats->state_filename, "%s%s", STATE_PATHNAME, filename);
 	FILE* file = fopen(game_stats->state_filename, "w");
 	if (file == NULL) {
 		printf("Error. Couldn't save file.");

@@ -219,7 +219,7 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 		}
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
 			if (send_quit_request(sockets_ds, game_stats) == SUCCESS) {
-				printf("Game quitted\n");
+				printf("Game quitted.\n");
 				end_game(game_stats);
 			}
 		}
