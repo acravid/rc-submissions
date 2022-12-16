@@ -35,10 +35,12 @@ typedef struct {
 
 
 // handle udp requests from client
-int start_request_handler(socket_ds*);
-int play_request_handler(socket_ds*);
-int guess_request_handler(socket_ds*);
-int quit_request_handler(socket_ds*);
+void start_request_handler(char*,size_t,char*);
+void play_request_handler(char*,size_t,char*);
+void guess_request_handler(char*,size_t,char*);
+void quit_request_handler(char*,size_t,char*);
+void exit_request_handler(char*,size_t,char*);
+void debug_request_handler(char*,size_t,char*);
 
 void udp_setup(socket_ds*, input_args);
 
@@ -77,4 +79,35 @@ void tcp_setup(socket_ds*, input_args);
 #define AUTO_PROTOCOL 0
 #define ERROR -1
 #define SUCCESS 0
+#define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
+#define SERVER_UDP_MAX_REPLY_SIZE 76
+#define GAME_PLAY_CODE_SIZE 3
+
+
+
+// known udp requests game_play_code
+#define START_CODE "SNG"
+#define PLAY_CODE "PLG"
+#define GUESS_CODE "PWG"
+#define QUIT_CODE "RQT"
+#define EXIT_CODE "RQT"
+#define DEBUG_CODE "REV"
+
+
+#define UNKNOWN_GAME_PLAY_CODE_REPLY "ERR\n"
+
+// generic ERROR messages
+#define ERROR_RECV_FROM "\n"\
+						"recvfrom(): an error has occurred, failed to receive message from socket\n"
+
+#define ERROR_SENDO_TO_FROM "\n"\
+						"sendto(): an error has occurred, failed to send message on socket\n"
+				
+
+
+/* Clean up socket resources: */
+void cleanup_connection(int,struct addrinfo*);
+
+
+
 #endif /* REQUEST_H */
