@@ -2,8 +2,6 @@
  * File: player.h
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: header for player.c
- * 
- * 
 */
 
 #ifndef PLAYER_H
@@ -37,14 +35,7 @@
 #define DEFAULT_GSIP "tejo.ist.utl.pt"
 #define DEFAULT_GSPORT "58011"
 
-/*Others: */
-#define PROGRAM_IS_RUNNING 1
-#define EQUAL 0
-#define SUCCESS 0
-#define ERROR -1
-#define YES 0
-#define NO 1
-#define MAYBE -1
+/*Pathnames: */
 #define SCOREBOARD_PATHNAME "./"
 #define SCOREBOARD_PATHNAME_SIZE 2
 #define HINT_PATHNAME "./"
@@ -52,7 +43,7 @@
 #define STATE_PATHNAME "./"
 #define STATE_PATHNAME_SIZE 2
 
-
+/*Messages: */
 #define USAGE_INFO  "\n"\
 					"Player Application (Player)\n"\
 		   			"Invalid arguments to start the player\n"\
@@ -63,38 +54,51 @@
 					"\n"\
 					"GSPORT is the well-known port (TCP and UDP) where the GS accepts requests.\n"\
 					"If omitted, it assumes the value 5800+GN, where GN is the group number\n"
+					
+#define QUIT_MESSAGE "Game quitted.\n"
 
-/*---------------Struct---------------*/
+/*Others: */
+#define PROGRAM_IS_RUNNING 1
+#define EQUAL 0
+#define SUCCESS 0
+#define ERROR -1
+#define YES 0
+#define NO 1
+#define MAYBE -1
+
+/*---------------Structs---------------*/
 
 /* @brief:
-    struct that stores optional command line arguments
-    if no arguments is given set to default.
+    Struct that stores optional command line arguments
 */
 typedef struct {
-
     char *ip;
     char *port;
-
 } optional_args;
 
+/* @brief:
+    Struct that stores relevant game data
+*/
 typedef struct {
-    
+	int running;
+	
 	char player_id[7];
-    int letters;
-    int errors;
+    int n_letters;
+    int n_errors;
     char* word;
     char* guess;
     char last_letter;
     int last_play;
-    int running;
     int trial;
+    
     char scoreboard_filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
     char hint_filename[MAX_FILENAME + HINT_PATHNAME_SIZE];
     char state_filename[MAX_FILENAME + STATE_PATHNAME_SIZE];
     char state_status[4];
-
 } game_status;
 
+/*---------------Function prototype---------------*/
+
 void get_word(char*);
-void upcase_word(char*);
+
 #endif /* PLAYER_H */
