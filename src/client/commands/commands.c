@@ -43,8 +43,7 @@ void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     int ret = getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr);
     if(ret != SUCCESS) {
         // Failed to get an internet address
-        freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
-		close(sockets_ds->fd_udp);
+		cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
 		fprintf(stderr, ERROR_ADDR_UDP);
 		exit(EXIT_FAILURE);
     }
@@ -396,8 +395,7 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     int ret = getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_tcp, &sockets_ds->addrinfo_tcp_ptr);
 	if(ret != SUCCESS) {
         //failed to get an internet address
-        freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-		close(sockets_ds->fd_tcp);
+		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 		fprintf(stderr, ERROR_ADDR_TCP);
 		exit(EXIT_FAILURE);
 
@@ -406,8 +404,7 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
  	//connects with server
 	ret = connect(sockets_ds->fd_tcp, sockets_ds->addrinfo_tcp_ptr->ai_addr, sockets_ds->addrinfo_tcp_ptr->ai_addrlen);
     if(ret == ERROR) {
-    	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-		close(sockets_ds->fd_tcp);
+		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 		fprintf(stderr, ERROR_TCP_CONNECT);
 		exit(EXIT_FAILURE);
 	}
@@ -445,9 +442,8 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 	}
 
 	int res = process_scoreboard_response(sockets_ds, game_stats);
-	
-	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-	close(sockets_ds->fd_tcp);
+
+	cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 	
 	return res;
 }
@@ -559,9 +555,8 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	}
 
 	int hint_filesize = process_hint_response(sockets_ds, game_stats);
-	
-	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-	close(sockets_ds->fd_tcp);
+
+	cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 	
 	return hint_filesize;
 }
@@ -669,8 +664,7 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 
 	int res = process_state_response(sockets_ds, game_stats);
 	
-	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-	close(sockets_ds->fd_tcp);
+	cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 	
 	return res;
 }
@@ -738,4 +732,12 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	fclose(file);
 	
 	return SUCCESS;
+}
+
+// frees addrinfo and closes connection (fd)
+void cleanup_connection(int fd,struct addrinfo *addr) {
+
+	freeeaddrinfo(addr);
+	close(fd);
+	
 }

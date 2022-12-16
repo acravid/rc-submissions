@@ -118,4 +118,8 @@ int send_scoreboard_request(socket_ds*, optional_args, game_status*);
 int send_hint_request(socket_ds*, optional_args, game_status*);
 int send_state_request(socket_ds*, optional_args, game_status*);
 
+/* Clean up socket resources: */
+void cleanup_connection(int,struct addrinfo*);
+
+
 #endif /* COMMANDS_H */
