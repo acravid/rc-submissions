@@ -3,47 +3,30 @@
 #include <string.h>
 #include "game_server.h"
 
-// TODO 
 
-// 1.function that establishes udp connection
-// 2. function that establishes tcp connection
-// 3. function that handles commands from udp
-// 4. function that handles commands from tcp
-// 5... function that process each of the request
-// 6 function that handles input parsing
+// create directories that stores game related
+// information GAMES and SCORES
+void init_data() {
+
+	if(mkdir("GAMES",S_IRWXU) != SUCCESS) {
+		fprintf(stderr,ERROR_MKDIR);
+	}
+	
+	if(mkdir("SCORES",S_IRWXU) != SUCCESS) {
+		fprintf(stderr,ERROR_MKDIR);
+	}
+
+}
 
 
-
-
-
-
-//
-// Function:
-//
-//
-// Inputs: 
-//
-//
-// Description:
-//
-//
-//
 // prints usage message to stderr
 static void usage() {
 	fprintf(stderr, USAGE_INFO);
 }
 
 
-//
-// Function: 
-//
-//
-// Inputs: 
-//
-//
-// Description:
-//
-//
+// Parses command line of the following format:
+// ./GS word_file [-p GSPort] [-v]
 input_args parse_args(int argc, char **argv) {
 
     if(argc == 1 || argc > 5) {
@@ -76,33 +59,63 @@ input_args parse_args(int argc, char **argv) {
     
 }
 
+// clean up server state, that is to say:
+// close open socket connections
+// free resources
+void cleanup_server(socket_ds * sockets_ds) {
 
-
-
-//
-// Function: main
-//
-//
-// Inputs: int argcm char** argv
-//
-//
-// Description:
-//
-// Main program entry point
-//
-int main(int argc, char **argv) {
-
-	input_args args = parse_args(argc,argv);
-	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
-	udp_setup(sockets_ds,args);
-
-	
 	// Exiting
 	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
 	close(sockets_ds->fd_udp);
 	free(sockets_ds);
 
 
+}
+
+// Main program entry point
+int main(int argc, char **argv) {
+
+	pid_t pid;
+	input_args args = parse_args(argc,argv);
+	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
+
+
+	// initialize data storage
+	init_data();
+
+	// create a child process
+	pid = fork();
+
+	// 0 is returned in the child
+	if(pid == 0) {
+		// child process responsible for handling udp requests
+
+		// create pointer, useful to pass around functions
+		socket_ds* socket_ds_ptr = sockets_ds;
+		
+		// TODO: 
+		// catch ctrl-c with a signal handler
+		udp_setup(sockets_ds,args);
+		udp_request_handler(sockets_ds);
+
+	} else if(pid > 0) {
+		// calling process (parent)
+		// responsible for handling tcp requests
+		tcp_setup(sockets_ds,args);
+		tcp_request_handler(sockets_ds);
+
+	} else {
+		// on failure - 1 is returned
+		fprintf(stderr,ERROR_FORK);
+
+		// TODO: ?
+		// close open tcp and udp connections -> clean up connections
+		cleanup_server(sockets_ds);
+
+		exit(EXIT_FAILURE);
+	}
+
+	cleanup_server(sockets_ds);
 	exit(EXIT_SUCCESS);
 
 }

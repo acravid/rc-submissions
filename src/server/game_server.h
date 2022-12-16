@@ -10,6 +10,7 @@
 #define GAME_SERVER_H
 
 #include <stdbool.h> 
+#include <sys/stat.h> // for creating directories
 
 #include "requests/request.h"
 
@@ -30,6 +31,16 @@ typedef struct {
 #define DEFAULT_GSPORT "58091"
 #define MAX_STRING 65535
 #define EQUAL 0
+
+
+
+
+#define ERROR_MKDIR "\n"\
+                    "mkdir() an error has occurred, the directory was not created\n"
+
+#define ERROR_FORK "\n"\
+                    "fork() an error has occurred, failed to create a child process\n"
+
 
 
 // TODO:
