@@ -14,6 +14,9 @@
 
 
 
+
+
+
 //
 // Function:
 //
@@ -90,6 +93,15 @@ input_args parse_args(int argc, char **argv) {
 int main(int argc, char **argv) {
 
 	input_args args = parse_args(argc,argv);
+	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
+	udp_setup(sockets_ds,args);
+
+	
+	// Exiting
+	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
+	close(sockets_ds->fd_udp);
+	free(sockets_ds);
+
 
 	exit(EXIT_SUCCESS);
 

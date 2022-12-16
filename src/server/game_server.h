@@ -9,24 +9,9 @@
 #ifndef GAME_SERVER_H
 #define GAME_SERVER_H
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h> 
-#include <netdb.h> 
 #include <stdbool.h> 
 
-// Structure that stores information related to SOCKET communication 
-// both DATAGRAM AND STREAM SOCKETS
-typedef struct {
-
-    int fd_udp;
-    int fd_tcp;
-    struct addrinfo addrinfo_udp, *addrinfo_udp_ptr;
-    struct addrinfo addrinfo_tcp, *addrinfo_tcp_ptr;
-	
-} socket_ds; // socket DATAGRAM STREAM
+#include "requests/request.h"
 
 
 typedef struct {
@@ -38,12 +23,14 @@ typedef struct {
 } input_args;
 
 
+//--------------------------------------------------------------
+//                              MACROS
+//--------------------------------------------------------------
+
 #define DEFAULT_GSPORT "58091"
 #define MAX_STRING 65535
 #define EQUAL 0
 
-
-/*---------------MACROS---------------*/
 
 // TODO:
 #define USAGE_INFO  "\n"\
