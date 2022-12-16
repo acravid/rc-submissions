@@ -113,7 +113,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
         n = sendto(sockets_ds->fd_udp,reply,strlen(reply),AUTO_PROTOCOL,(struct sockaddr*)&addr,addrlen);
         if(n == ERROR) {
             cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            fprint(stderr,ERROR_SENDO_TO_FROM);
+            fprint(stderr,ERROR_SENDO_TO);
             exit(EXIT_FAILURE);
         }
 

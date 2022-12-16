@@ -100,7 +100,7 @@ void tcp_setup(socket_ds*, input_args);
 #define ERROR_RECV_FROM "\n"\
 						"recvfrom(): an error has occurred, failed to receive message from socket\n"
 
-#define ERROR_SENDO_TO_FROM "\n"\
+#define ERROR_SENDO_TO "\n"\
 						"sendto(): an error has occurred, failed to send message on socket\n"
 				
 
