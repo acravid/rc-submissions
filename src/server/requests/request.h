@@ -16,6 +16,7 @@
 #include <arpa/inet.h> 
 #include <netdb.h> 
 
+// NOTE: move common macros  and functions to a shared file (client,server)
 
 // Structure that stores information related to SOCKET communication 
 // both DATAGRAM AND STREAM SOCKETS
@@ -65,11 +66,33 @@ void udp_setup(socket_ds*, input_args);
 
 
 // handle tcp requests from client
-int scoreboard_request_handler(socket_ds*);
-int hint_request_handler(socket_ds*);
-int state_request_handler(socket_ds*);
+
+void scoreboard_request_handler(char*,size_t,char*);
+void hint_request_handler(char*,size_t,char*);
+void state_request_handler(char*,size_t,char*);
 
 void tcp_setup(socket_ds*, input_args);
+
+
+
+
+/*TCP error messages: */
+#define ERROR_FD_TCP  "\n"\
+					 "An error has occurred\n"\
+					 "Failed to create an endpoint for communication\n"\
+					 "TCP: socket() was not satisfied\n"
+
+#define ERROR_ADDR_TCP "\n"\
+					  "An error has occurred\n"\
+					  "TCP:  getaddrinfo() was not successful\n"
+
+// TODO:
+#define ERROR_BIND_TCP "\n"\
+					   "An error has occurred\n"\
+					   "TCP: bind() was not successful\n"
+
+#define ERROR_LISTEN "\n"\
+					 "ERROR "
 
 
 //--------------------------------------------------------------
@@ -82,6 +105,12 @@ void tcp_setup(socket_ds*, input_args);
 #define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
 #define SERVER_UDP_MAX_REPLY_SIZE 76
 #define GAME_PLAY_CODE_SIZE 3
+#define CLIENT_TCP_MAX_REQUEST_SIZE 11
+#define SERVER_TCP_MAX_REPLY_SIZE 100000 // FIX ME LATER
+
+#define MAX_QUEUED_REQUESTS 10
+#define FORK_CHILD 0
+
 
 
 
@@ -92,6 +121,11 @@ void tcp_setup(socket_ds*, input_args);
 #define QUIT_CODE "RQT"
 #define EXIT_CODE "RQT"
 #define DEBUG_CODE "REV"
+
+// known tcp requests 
+#define SCOREBOARD_CODE "GSB"
+#define HINT_CODE "GHL"
+#define STATUS_CODE "STA"
 
 
 #define UNKNOWN_GAME_PLAY_CODE_REPLY "ERR\n"
@@ -104,6 +138,13 @@ void tcp_setup(socket_ds*, input_args);
 						"sendto(): an error has occurred, failed to send message on socket\n"
 				
 
+#define ERROR_ACCEPT "\n"\
+					 "accept(): an error has occurred, failed to accept connection on socket\n"
+#define ERROR_CLOSE "\n"\
+					"close(): an error has occurred, failed to close the file\n"
+
+#define ERROR_READ "\n"\
+				   "read(): an erros has occurred, failed to read ... bytes\n"
 
 /* Clean up socket resources: */
 void cleanup_connection(int,struct addrinfo*);

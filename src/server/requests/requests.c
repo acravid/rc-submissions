@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <errno.h>
 #include "request.h"
 #include "../game_server.h"
+
 
 
 //--------------------------------------------------------------
@@ -121,7 +122,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
 
 }
 
-// set up a UDP SOCKET 
+// set up UDP SOCKET 
 void udp_setup(socket_ds* sockets_ds, input_args args) {
 
     int ret;
@@ -159,44 +160,158 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 //--------------------------------------------------------------
 
 
-int send_scoreboard_request(socket_ds* sockets_ds) {
+void scoreboard_request_handler(char *buffer,size_t len,char *reply_ptr) {
 
 
 }
 
 
-int send_hint_request(socket_ds* sockets_ds) {
+void hint_request_handler(char *buffer,size_t len,char *reply_ptr) {
 
 
 }
 
 
-int send_state_request(socket_ds* sockets_ds) {
+void state_request_handler(char *buffer,size_t len,char *reply_ptr) {
 
 
 }
 
+void tcp_select_requests_handler(char *buffer,size_t len,char *reply_ptr) {
 
-// handle requests to different functions
-void tcp_requests_handler(socket_ds* socket_ds) {
-
-    // having the udp socket completely set up
-    // we can now process requests from clients
-    while(true) {
-
-
-
-
-
+    if(strncmp(SCOREBOARD_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
+        scoreboard_request_handler(buffer,len,reply_ptr);
+    } 
+    else if(strncmp(HINT_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
+        hint_request_handler(buffer,len,reply_ptr);
+    }
+    else if(strncmp(STATE_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
+        status_request_handler(buffer,len,reply_ptr);
+    }
+     else {
+        strcpy(reply_ptr,UNKNOWN_GAME_PLAY_CODE_REPLY);
 
     }
 
 }
 
+
+ssize_t read_bytes_tcp(int fd,char *buffer,size_t number_of_bytes) {    
+
+    // FIX ME 
+    // add timeout (timer)
+
+    ssize_t read_bytes = 0;
+    int reading = 1;
+
+    while(reading) {
+        ssize_t already_read;
+        already_read = read(fd,buffer,number_of_bytes - (size_t) read_bytes);
+        reading = (already_read == ERROR) && (errno == EINTR);
+        read_bytes += already_read;
+        if(already_read == ERROR) {
+            return ERROR;
+        }
+    }   
+    return (ssize_t) read_bytes;
+}
+
+
+// handle requests to different functions
+void tcp_requests_handler(socket_ds* sockets_ds) {
+
+
+
+    int newfd;
+    struct sockaddr_in addr;
+    socklen_t addrlen;
+    ssize_t n, nread;
+    char request_buffer[CLIENT_TCP_MAX_REQUEST_SIZE];
+    char reply_buffer[SERVER_TCP_MAX_REPLY_SIZE];
+    pid_t pid;
+ 
+    memset(reply_buffer,'\0',sizeof(reply_buffer));
+    
+    while(true) {
+
+        addrlen = sizeof(addr);
+
+        do newfd = accept(sockets_ds->fd_tcp,(struct sockaddr*)&addr,&addrlen);
+        while((newfd == ERROR) && (errno = EINTR));
+
+        if(newfd == ERROR) {
+            cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_udp_ptr);
+            fprint(stderr,ERROR_SENDO_TO);
+            exit(EXIT_FAILURE);
+        }
+        // create a new child process for each new connection
+        pid = fork();
+        if(pid == ERROR) {
+            fprint(stderr,ERROR_FORK);
+            exit(EXIT_FAILURE);
+        } 
+        else if(pid == FORK_CHILD) { // child process
+            if(close(sockets_ds->fd_tcp) == ERROR) {
+                fprintf(stderr,ERROR_CLOSE);
+                exit(EXIT_FAILURE);
+            }
+
+            nread = read_bytes_tcp(newfd,request_buffer,strlen(request_buffer));
+            if(nread == ERROR) {
+                fprintf(stderr,ERROR_READ);
+                exit(EXIT_FAILURE);
+            }
+
+            // process request buffer and handle to corresponding functions
+
+
+        } 
+        else {
+            // TODO:
+        }
+
+    }
+
+}
+
+
+// set up TCP SOCKET
 void tcp_setup(socket_ds* sockets_ds, input_args args) {
 
 
+    int ret;
+
+    if((sockets_ds->fd_tcp = socket(AF_INET, SOCK_STREAM, AUTO_PROTOCOL)) == ERROR) {
+    
+        fprintf(stderr, ERROR_FD_TCP);
+        exit(EXIT_FAILURE);
+
+    } 
+
+    memset(&sockets_ds->addrinfo_tcp, 0, sizeof(sockets_ds->addrinfo_tcp));
+    sockets_ds->addrinfo_tcp.ai_family = AF_INET; //IPv4
+    sockets_ds->addrinfo_tcp.ai_socktype = SOCK_DGRAM;  //TCP socket
+    sockets_ds->addrinfo_tcp.ai_flags = AI_PASSIVE; 
+
+    if((ret = getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_tcp, &sockets_ds->addrinfo_tcp_ptr) != SUCCESS)) {
+        fprintf(stderr, ERROR_ADDR_TCP);
+		exit(EXIT_FAILURE);
+
+    }
+
+    if(bind(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr->ai_addr,sockets_ds->addrinfo_tcp_ptr->ai_addrlen) == ERROR) {
+        fprintf(stderr, ERROR_BIND_TCP);
+		exit(EXIT_FAILURE);
+    }
+
+    if(listen(sockets_ds->fd_tcp,MAX_QUEUED_REQUESTS) == ERROR) {
+        fprintf(stderr,ERROR_LISTEN);
+        exit(EXIT_FAILURE);
+    }
+
 }
+
+
 
 // frees addrinfo and closes connection (fd)
 void cleanup_connection(int fd,struct addrinfo *addr) {
