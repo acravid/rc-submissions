@@ -29,35 +29,35 @@ void start_request_handler(char *buffer, size_t len, char *reply_ptr) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//read player id
-	char playerid[PLAYERID_SIZE + 1];
-	sscanf(&buffer[CODE_SIZE], "%s", playerid);
-
-	//check for space after code and if message ends with \n
-	if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if player is valid
-	if (!valid_playerid(playerid))
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if player has an ongoing game
-	//TODO omgoing_game_with_moves()
-	if (ongoing_game_with_moves(playerid))
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
-
-	//starts the game
-	//TODO start_game()
 	else {
-	   	char res[6];	
-		start_game(playerid, res);
-		char n_letters[3];
-		char n_errors[2];
-		sscanf(res, "%s %s", n_letters, n_errors);
-		sprintf(reply,"%s %s %s %s\n", START_REPLY_CODE, OK_REPLY_CODE, n_letters, n_errors);
+		//read player id
+		char playerid[PLAYERID_SIZE + 1];
+		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+
+		//check for space after code and if message ends with \n
+		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player has an ongoing game
+		//TODO omgoing_game_with_moves()
+		else if (ongoing_game_with_moves(playerid))
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
+
+		//starts the game
+		//TODO start_game()
+		else {
+	   		char res[6];	
+			start_game(playerid, res);
+			char n_letters[3];
+			char n_errors[2];
+			sscanf(res, "%s %s", n_letters, n_errors);
+			sprintf(reply,"%s %s %s %s\n", START_REPLY_CODE, OK_REPLY_CODE, n_letters, n_errors);
+		}
 	}
-	
 }
 
 
@@ -66,55 +66,56 @@ void play_request_handler(char *buffer,size_t len,char *reply_ptr) {
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
 	if (request_size != len && request_size + 1 != len) //trial may have 2 digits
 		sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//read player id
-	char playerid[PLAYERID_SIZE + 1];
-	char letter[2];
-	char trial[3];
-	sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
-
-	//check if parsing was successful
-	if (playerid == NULL || letter == NULL || trial == NULL) 
-		sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check for spaces in the right places
-	if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ' || 
-			buffer[CODE_SIZE + 1 + PLAYERID_SIZE + 1 + 1] != ' ') 
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//check if the message ends with \n
-	if (buffer[len - 1] != '\n')
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//check if player is valid
-	if (!valid_playerid(playerid))
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);	
-
-	//check if letter is valid
-	if (!valid_letter(letter))
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if letter is duplicate
-	//TODO dup_letter(char*, char*)
-	if (!dup_letter(letter, playerid))
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE);
-	
-	//check if player has an ongoing game
-	//TODO on_going_game_w_or_wo_moves
-	if (!ongoing_game_w_or_wo_moves(playerid))
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if trial is valid
-	//TODO valid_trial()
-	if (!valid_trial(trial, playerid))
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
-
-	//make play
-	//TODO play()
 	else {
-	   	char res[MAX_PLAY_REPLY_SIZE];	
-		play(playerid, letter, res);
-		sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
+		//read player id
+		char playerid[PLAYERID_SIZE + 1];
+		char letter[2];
+		char trial[3];
+		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
+
+		//check if parsing was successful
+		if (playerid == NULL || letter == NULL || trial == NULL) 
+			sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check for spaces in the right places
+		else if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ' || 
+			buffer[CODE_SIZE + 1 + PLAYERID_SIZE + 1 + 1] != ' ') 
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
+	
+		//check if the message ends with \n
+		else if (buffer[len - 1] != '\n')
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
+	
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);	
+
+		//check if letter is valid
+		else if (!valid_letter(letter))
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if letter is duplicate
+		//TODO dup_letter(char*, char*)
+		else if (!dup_letter(letter, playerid))
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE);
+	
+		//check if player has an ongoing game
+		//TODO on_going_game_w_or_wo_moves
+		else if (!ongoing_game_w_or_wo_moves(playerid))
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if trial is valid
+		//TODO valid_trial()
+		else if (!valid_trial(trial, playerid))
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
+
+		//make play
+		//TODO play()
+		else {
+	   		char res[MAX_PLAY_REPLY_SIZE];	
+			play(playerid, letter, res);
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
+		}
 	}
 }
 
@@ -124,46 +125,47 @@ void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
 		sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//read player id, word and trial
-	char playerid[PLAYERID_SIZE + 1];
-	char word[MAX_WORD_SIZE + 1];
-	char trial[3];
-	sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
-
-	//check if parsing was successful
-	if (playerid == NULL || letter == NULL || trial == NULL)
-		sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check for spaces in the right places
-	if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//check if the message ends with \n
-	if (buffer[len - 1] != '\n') 
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//check if player is valid
-	if (!valid_playerid(playerid))
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
-
-	//check if player has an ongoing game
-	//TODO on_going_game_w_or_wo_moves
-	if (!ongoing_game_w_or_wo_moves(playerid))
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if trial is valid
-	//TODO valid_trial()
-	if (!valid_trial(trial, playerid)) 
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
-
-	//make play
-	//TODO guess()
 	else {
-	   	char res[MAX_GUESS_REPLY_SIZE];	
-		guess(playerid, word, res);
-		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, res);
-	}
+		//read player id, word and trial
+		char playerid[PLAYERID_SIZE + 1];
+		char word[MAX_WORD_SIZE + 1];
+		char trial[3];
+		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
+
+		//check if parsing was successful
+		else if (playerid == NULL || letter == NULL || trial == NULL)
+			sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check for spaces in the right places
+		else if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+	
+		//check if the message ends with \n
+		else if (buffer[len - 1] != '\n') 
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+	
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
+
+		//check if player has an ongoing game
+		//TODO on_going_game_w_or_wo_moves
+		else if (!ongoing_game_w_or_wo_moves(playerid))
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if trial is valid
+		//TODO valid_trial()
+		else if (!valid_trial(trial, playerid)) 
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
+
+		//make play
+		//TODO guess()
+		else {
+	   		char res[MAX_GUESS_REPLY_SIZE];	
+			guess(playerid, word, res);
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, res);
+		}
+	}	
 }
 
 
@@ -171,29 +173,30 @@ void quit_request_handler(char *buffer,size_t len,char *reply_ptr) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len)
 		sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//read player id
-	char playerid[PLAYERID_SIZE + 1];
-	sscanf(&buffer[CODE_SIZE], "%s", playerid);
-
-	//check for space after code and if message ends with \n
-	if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if player is valid
-	if (!valid_playerid(playerid))
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
-	//check if player has an ongoing game
-	//TODO omgoing_game_with_moves()
-	if (!ongoing_game_with_moves(playerid))
-		sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
-
-	//starts the game
-	//TODO end_game()
 	else {
-		end_game(playerid);
-		sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
+		//read player id
+		char playerid[PLAYERID_SIZE + 1];
+		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+
+		//check for space after code and if message ends with \n
+		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player has an ongoing game
+		//TODO omgoing_game_with_moves()
+		else if (!ongoing_game_with_moves(playerid))
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
+
+		//starts the game
+		//TODO end_game()
+		else {
+			end_game(playerid);
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
+		}
 	}
 }
 
@@ -306,43 +309,134 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 //--------------------------------------------------------------
 
 
-void scoreboard_request_handler(char *buffer,size_t len,char *reply_ptr) {
+void scoreboard_request_handler(char* request, size_t len, char* reply) {
+	
+	//check if request is correct
+	if (strcmp("GSB\n", request) != EQUAL)
+		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, ERROR_REPLY_CODE);
+	
+	//TODO scoreboard_empty()
+	else if (scoreboard_empty())
+		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
+	//TODO scoreboard(), define sizes and haddle file open and read errors 
+	else {
+		char* filename_filesize[SIZE];
+		char* filename[SIZE];
+		char* filesize[SIZE];
+		char* filedata[SIZE];
+		scoreboard(filename_filesize);
+		sscanf(filename_filesize, "%s %s", filename, fileize);
+		
+		//open and read file
+		FILE* file = fopen(filename, "r");
+		fread(filedata, SIZE, 1, file);
+
+		sprintf(reply, "%s %s %s %s %s\n", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
+	}
+}
+
+
+void hint_request_handler(char* buffer, size_t len, char* reply) {
+	//check if message sent has the right size
+	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
+		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+	else {
+		//read player id
+		char playerid[PLAYERID_SIZE + 1];
+		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+
+		//check for space after code and if message ends with \n
+		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
+			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player has an ongoing game
+		//TODO ongoing_game_w_or_wo_moves()
+		else if (!ongoing_game_w_or_wo_moves(playerid))
+			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
+
+		//TODO hint(), define sizes and haddle file open and read errors 
+		else {
+			char* filename_filesize[SIZE];
+			char* filename[SIZE];
+			char* filesize[SIZE];
+			char* filedata[SIZE];
+			hint(filename_filesize);
+			sscanf(filename_filesize, "%s %s", filename, fileize);
+		
+			//open and read file
+			FILE* file = fopen(filename, "r");
+			fread(filedata, SIZE, 1, file);
+
+			sprintf(reply, "%s %s %s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
+		}
+	}
+}
+
+
+void state_request_handler(char* buffer, size_t len, char *reply) {
+	//check if message sent has the right size
+	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
+		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+	else {
+		//read player id
+		char playerid[PLAYERID_SIZE + 1];
+		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+
+		//check for space after code and if message ends with \n
+		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//check if player is valid
+		else if (!valid_playerid(playerid))
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+
+		//TODO state(), define sizes and haddle file open and read errors 
+		else {
+			char* status_filename_filesize[SIZE];
+			char status[4];
+			char* filename[SIZE];
+			char* filesize[SIZE];
+			char* filedata[SIZE];
+			state(status_filename_filesize);
+			sscanf(filename_filesize, "%s %s %s", status, filename, fileize);
+
+			if (strcmp(NOK_REPLY_CODE, status) == EQUAL)
+				sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
+			else {
+				//open and read file
+				FILE* file = fopen(filename, "r");
+				fread(filedata, SIZE, 1, file);
+
+				sprintf(reply, "%s %s %s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
+			}
+		}
+	}
 
 
 }
 
+void tcp_select_requests_handler(char* request, size_t len, char* reply) {
 
-void hint_request_handler(char *buffer,size_t len,char *reply_ptr) {
-
-
-}
-
-
-void state_request_handler(char *buffer,size_t len,char *reply_ptr) {
-
-
-}
-
-void tcp_select_requests_handler(char *buffer,size_t len,char *reply_ptr) {
-
-    if(strncmp(SCOREBOARD_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
-        scoreboard_request_handler(buffer,len,reply_ptr);
+    if(strncmp(SCOREBOARD_CODE, request, CODE_SIZE)) {
+        scoreboard_request_handler(request, len, reply);
     } 
-    else if(strncmp(HINT_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
-        hint_request_handler(buffer,len,reply_ptr);
+    else if(strncmp(HINT_CODE, request, CODE_SIZE)) {
+        hint_request_handler(request, len, reply);
     }
-    else if(strncmp(STATE_CODE,buffer,GAME_PLAY_CODE_SIZE)) {
-        status_request_handler(buffer,len,reply_ptr);
+    else if(strncmp(STATE_CODE, request, CODE_SIZE)) {
+        status_request_handler(request, len, reply);
     }
      else {
-        strcpy(reply_ptr,UNKNOWN_GAME_PLAY_CODE_REPLY);
-
+        sprintf(reply, "%s\n", ERROR_REPLY_CODE);
     }
-
 }
 
 
-ssize_t read_bytes_tcp(int fd,char *buffer,size_t number_of_bytes) {    
+ssize_t read_bytes_tcp(int fd, char *buffer, size_t number_of_bytes) {    
 
     // FIX ME 
     // add timeout (timer)
@@ -350,7 +444,7 @@ ssize_t read_bytes_tcp(int fd,char *buffer,size_t number_of_bytes) {
     ssize_t read_bytes = 0;
     int reading = 1;
 
-    while(reading) {
+    while (reading) {
         ssize_t already_read;
         already_read = read(fd,buffer,number_of_bytes - (size_t) read_bytes);
         reading = (already_read == ERROR) && (errno == EINTR);
@@ -366,17 +460,15 @@ ssize_t read_bytes_tcp(int fd,char *buffer,size_t number_of_bytes) {
 // handle requests to different functions
 void tcp_requests_handler(socket_ds* sockets_ds) {
 
-
-
     int newfd;
     struct sockaddr_in addr;
     socklen_t addrlen;
     ssize_t n, nread;
-    char request_buffer[CLIENT_TCP_MAX_REQUEST_SIZE];
-    char reply_buffer[SERVER_TCP_MAX_REPLY_SIZE];
+    char request[CLIENT_TCP_MAX_REQUEST_SIZE];
+    char reply[SERVER_TCP_MAX_REPLY_SIZE];
     pid_t pid;
  
-    memset(reply_buffer,'\0',sizeof(reply_buffer));
+    memset(reply,'\0', sizeof(reply));
     
     while(true) {
 
@@ -401,20 +493,24 @@ void tcp_requests_handler(socket_ds* sockets_ds) {
                 fprintf(stderr,ERROR_CLOSE);
                 exit(EXIT_FAILURE);
             }
-
-            nread = read_bytes_tcp(newfd,request_buffer,strlen(request_buffer));
+			
+			//TODO acho esta função desnecessária, podia estar como no client
+            nread = read_bytes_tcp(newfd, request, strlen(request));
             if(nread == ERROR) {
-                fprintf(stderr,ERROR_READ);
+                fprintf(stderr, ERROR_READ);
                 exit(EXIT_FAILURE);
             }
+			
+			//make request a string
+			request[nread] = '\0'
 
             // process request buffer and handle to corresponding functions
+			tcp_select_requests_handler(request, nread, reply);
 
-
+			//TODO write reply back to client
+			//TODO close socket and kill child process
+			
         } 
-        else {
-            // TODO:
-        }
 
     }
 

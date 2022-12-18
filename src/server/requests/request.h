@@ -110,6 +110,9 @@ void tcp_setup(socket_ds*, input_args);
 
 #define PLAYERID_MIN 90000
 #define PLAYERID_MAX 110000
+#define PLAYERID_SIZE 6
+#define MAX_WORD_SIZE 30
+
 #define MAX_QUEUED_REQUESTS 10
 #define FORK_CHILD 0
 
@@ -121,21 +124,25 @@ void tcp_setup(socket_ds*, input_args);
 #define PLAY_CODE "PLG"
 #define GUESS_CODE "PWG"
 #define QUIT_CODE "RQT"
-#define EXIT_CODE "RQT"
 #define DEBUG_CODE "REV"
 
 #define START_REPLY_CODE "RSG"
 #define PLAY_REPLY_CODE "RLG"
+#define GUESS_REPLY_CODE "RWG"
+#define QUIT_REPLY_CODE "RQT"
 
 // known tcp requests 
 #define SCOREBOARD_CODE "GSB"
 #define HINT_CODE "GHL"
 #define STATUS_CODE "STA"
 
+#define SCOREBOARD_REPLY_CODE "RSB"
+
 
 #define NOK_REPLY_CODE "NOK"
 #define DUP_REPLY_CODE "DUP"
 #define INV_REPLY_CODE "INV"
+#define EMPTY_REPLY_CODE "EMPTY"
 #define ERROR_REPLY_CODE "ERR"
 
 // generic ERROR messages
