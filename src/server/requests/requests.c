@@ -12,20 +12,18 @@
 //--------------------------------------------------------------
 bool valid_playerid(char* player_id) {
 	int id = atoi(player_id);
-	if (id >= PLAYERID_MIN and id <= PLAYERID_MAX)
-		return true;
-	return false;
+    return (id >= PLAYERID_MIN && id <= PLAYERID_MAX) ? true : false;
+
 }
+
 
 bool valid_letter(char* letter) {
 	char l = letter[0];
-	//char in between A and z
-	if (l >= 65 && l <= 122)
-		return true;
-	return false;
+    return (l >= ASCII_A && l <= ASCII_z) ? true : false;
+	
 }
 
-void start_request_handler(char *buffer, size_t len, char *reply_ptr) {
+void start_request_handler(char *buffer, size_t len, char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
@@ -61,7 +59,7 @@ void start_request_handler(char *buffer, size_t len, char *reply_ptr) {
 }
 
 
-void play_request_handler(char *buffer,size_t len,char *reply_ptr) {
+void play_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
 	if (request_size != len && request_size + 1 != len) //trial may have 2 digits
@@ -120,7 +118,7 @@ void play_request_handler(char *buffer,size_t len,char *reply_ptr) {
 }
 
 
-void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
+void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
@@ -130,32 +128,33 @@ void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
 		char playerid[PLAYERID_SIZE + 1];
 		char word[MAX_WORD_SIZE + 1];
 		char trial[3];
+		char letter[2];
 		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
 
 		//check if parsing was successful
-		else if (playerid == NULL || letter == NULL || trial == NULL)
+		if(playerid == NULL || letter == NULL || trial == NULL)
 			sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check for spaces in the right places
-		else if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
+		else if(buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if the message ends with \n
-		else if (buffer[len - 1] != '\n') 
+		else if(buffer[len - 1] != '\n') 
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if player is valid
-		else if (!valid_playerid(playerid))
+		else if(!valid_playerid(playerid))
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
 
 		//check if player has an ongoing game
 		//TODO on_going_game_w_or_wo_moves
-		else if (!ongoing_game_w_or_wo_moves(playerid))
+		else if(!ongoing_game_w_or_wo_moves(playerid))
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if trial is valid
 		//TODO valid_trial()
-		else if (!valid_trial(trial, playerid)) 
+		else if(!valid_trial(trial, playerid)) 
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
 
 		//make play
@@ -169,7 +168,7 @@ void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
 }
 
 
-void quit_request_handler(char *buffer,size_t len,char *reply_ptr) {
+void quit_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len)
 		sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
@@ -227,7 +226,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
     // having the udp socket completely set up
     // we can now process requests from clients
     char buffer[CLIENT_UDP_MAX_REQUEST_SIZE];
-    char reply[SERVER_UDP_MAX_REPLY_SIZE];
+    char reply[MAX_PLAY_REPLY_SIZE];
  
     memset(reply, '\0', sizeof(reply));
     
@@ -255,7 +254,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
             udp_select_requests_handler(buffer, nread, reply);
             
         } else {
-            strcpy(reply, CODE_ERROR_CODE);
+            strcpy(reply, ERROR_REPLY_CODE);
 
         }
 
@@ -309,6 +308,8 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 //--------------------------------------------------------------
 
 
+// FIX ME: add macros for SIZE, HINT_REPLY_CODE 
+
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
 	
 	//check if request is correct
@@ -325,7 +326,7 @@ void scoreboard_request_handler(char* request, size_t len, char* reply) {
 		char* filesize[SIZE];
 		char* filedata[SIZE];
 		scoreboard(filename_filesize);
-		sscanf(filename_filesize, "%s %s", filename, fileize);
+		sscanf(filename_filesize, "%s %s", filename, filesize);
 		
 		//open and read file
 		FILE* file = fopen(filename, "r");
@@ -365,7 +366,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 			char* filesize[SIZE];
 			char* filedata[SIZE];
 			hint(filename_filesize);
-			sscanf(filename_filesize, "%s %s", filename, fileize);
+			sscanf(filename_filesize, "%s %s", filename, filesize);
 		
 			//open and read file
 			FILE* file = fopen(filename, "r");

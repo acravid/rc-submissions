@@ -103,13 +103,16 @@ void tcp_setup(socket_ds*, input_args);
 #define ERROR -1
 #define SUCCESS 0
 #define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
-#define SERVER_UDP_MAX_REPLY_SIZE 76
-#define GAME_PLAY_CODE_SIZE 3
+#define MAX_GUESS_REPLY_SIZE 10
+#define MAX_PLAY_REPLY_SIZE 76
+#define CODE_SIZE 3
 #define CLIENT_TCP_MAX_REQUEST_SIZE 11
 #define SERVER_TCP_MAX_REPLY_SIZE 100000 // FIX ME LATER
 
 #define PLAYERID_MIN 90000
 #define PLAYERID_MAX 110000
+#define ASCII_A 65
+#define ASCII_z 122
 #define PLAYERID_SIZE 6
 #define MAX_WORD_SIZE 30
 
@@ -134,16 +137,19 @@ void tcp_setup(socket_ds*, input_args);
 // known tcp requests 
 #define SCOREBOARD_CODE "GSB"
 #define HINT_CODE "GHL"
-#define STATUS_CODE "STA"
+#define STATE_CODE "STA"
 
 #define SCOREBOARD_REPLY_CODE "RSB"
 
 
+#define OK_REPLY_CODE "OK"
 #define NOK_REPLY_CODE "NOK"
 #define DUP_REPLY_CODE "DUP"
 #define INV_REPLY_CODE "INV"
 #define EMPTY_REPLY_CODE "EMPTY"
 #define ERROR_REPLY_CODE "ERR"
+
+
 
 // generic ERROR messages
 #define ERROR_RECV_FROM "\n"\
