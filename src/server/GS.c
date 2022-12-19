@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "game_server.h"
+#include "GS.h"
 
 
 // create directories that stores game related
 // information GAMES and SCORES
 void init_data() {
+	
+	init_player_info();
 
 	if(mkdir("GAMES",S_IRWXU) != SUCCESS) {
 		fprintf(stderr,ERROR_MKDIR);

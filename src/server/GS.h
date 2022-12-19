@@ -6,8 +6,8 @@
  * 
 */
 
-#ifndef GAME_SERVER_H
-#define GAME_SERVER_H
+#ifndef GS_H
+#define GS_H
 
 #include <stdbool.h> 
 #include <sys/stat.h> // for creating directories

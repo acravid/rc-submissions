@@ -3,29 +3,54 @@
 #include <string.h>
 #include <errno.h>
 #include "request.h"
-#include "../game_server.h"
+#include "../GS.h"
 
-
+player_info games[PLAYERID_MAX - PLAYERID_MIN];
 
 //--------------------------------------------------------------
 //                  UDP Module                                  
 //--------------------------------------------------------------
+void init_player_info() {
+	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
+		games[i].trial = 0;
+		strcpy("", games[i].word);
+		strcpy("", games[i].played_letters);
+	}
+}
+
 bool valid_playerid(char* player_id) {
 	int id = atoi(player_id);
-	if (id >= PLAYERID_MIN and id <= PLAYERID_MAX)
-		return true;
-	return false;
+    return (id >= PLAYERID_MIN && id <= PLAYERID_MAX) ? true : false;
+
 }
+
 
 bool valid_letter(char* letter) {
 	char l = letter[0];
-	//char in between A and z
-	if (l >= 65 && l <= 122)
-		return true;
-	return false;
+    return (l >= ASCII_A && l <= ASCII_z) ? true : false;
+	
 }
 
-void start_request_handler(char *buffer, size_t len, char *reply_ptr) {
+void start_game(int playerid) {
+	char word[MAX_WORD_SIZE];
+
+	//TODO:read word
+	
+	int len = strlen(word);
+	games[playerid - PLAYERID_MIN].n_letters = len;
+	if (len <= 6)
+		games[playerid - PLAYERID_MIN].n_errors = 7;
+	else if (len <= 10)
+		games[playerid - PLAYERID_MIN].n_errors = 8;
+	else
+		games[playerid - PLAYERID_MIN].n_errors = 9;
+
+
+	games[playerid - PLAYERID_MIN].trial = 1;
+	strcpy(word, games[playerid - PLAYERID_MIN].word);
+}
+
+void start_request_handler(char *buffer, size_t len, char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
@@ -43,25 +68,58 @@ void start_request_handler(char *buffer, size_t len, char *reply_ptr) {
 			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if player has an ongoing game
-		//TODO omgoing_game_with_moves()
-		else if (ongoing_game_with_moves(playerid))
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial > 1)
 			sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
 
 		//starts the game
-		//TODO start_game()
 		else {
-	   		char res[6];	
-			start_game(playerid, res);
-			char n_letters[3];
-			char n_errors[2];
-			sscanf(res, "%s %s", n_letters, n_errors);
-			sprintf(reply,"%s %s %s %s\n", START_REPLY_CODE, OK_REPLY_CODE, n_letters, n_errors);
+			start_game(atoi(playerid));
+			sprintf(reply,"%s %s %d %d\n", START_REPLY_CODE, OK_REPLY_CODE, 
+					games[int_playerid - PLAYERID_MIN].n_letters,
+					games[int_playerid - PLAYERID_MIN].n_errors);
 		}
 	}
 }
 
+void play(int playerid, char letter, char* res) {
 
-void play_request_handler(char *buffer,size_t len,char *reply_ptr) {
+	games[playerid - PLAYERID_MIN].trial += 1;
+
+	if (strchr(pigames[playerid - PLAYERID_MIN].word, letter) == NULL) {
+		games[playerid - PLAYERID_MIN].n_errors -= 1;
+		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
+			sprintf(res, "%s\n", OVR_REPLY_CODE);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;
+		}
+		else
+			sprintf(res, "%s\n", NOK_REPLY_CODE);
+	}
+	else {
+		games[playerid - PLAYERID_MIN]n_letters -= 1;
+		if (games[playerid - PLAYERID_MIN]n_letters = 0) {
+			sprintf(res, "%s\n", WIN_REPLY_CODE);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;
+		}
+		else {
+			int count = 0;
+			int pos[MAX_WORD_SIZE];
+			for (int i = 0; i < strlen(games[playerid - PLAYERID_MIN]word); i++) {
+				if (games[playerid - PLAYERID_MIN]word[i] == letter) {
+					pos[count] = i;
+					count += 1;
+				}
+			}
+			sprintf(res, "%s %d", OK_REPLY_CODE, count);
+			for (int i = 0, i < count; i++) {
+				sprintf(&res[strlen(res)], " %d", pos[i]);
+			}
+		}
+	}
+}
+
+void play_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
 	if (request_size != len && request_size + 1 != len) //trial may have 2 digits
@@ -95,32 +153,52 @@ void play_request_handler(char *buffer,size_t len,char *reply_ptr) {
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if letter is duplicate
-		//TODO dup_letter(char*, char*)
-		else if (!dup_letter(letter, playerid))
+		else if (strchr(games[playerid - PLAYERID_MIN]->played_letters, letter[0]) != NULL)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE);
 	
 		//check if player has an ongoing game
-		//TODO on_going_game_w_or_wo_moves
-		else if (!ongoing_game_w_or_wo_moves(playerid))
+		else if (games[atoi(playerid) - PLAYERID_MIN]->trial < 1)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if trial is valid
-		//TODO valid_trial()
-		else if (!valid_trial(trial, playerid))
+		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN]->trial)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
 
 		//make play
-		//TODO play()
 		else {
 	   		char res[MAX_PLAY_REPLY_SIZE];	
-			play(playerid, letter, res);
+			play(atoi(playerid), letter[0], res);
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
 		}
 	}
 }
 
+void guess(int playerid, char* word, char* res) {
 
-void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
+	games[playerid - PLAYERID_MIN].trial += 1;
+
+	if (strcmp(pigames[playerid - PLAYERID_MIN].word, word) != EQUAL) {
+		games[playerid - PLAYERID_MIN].n_errors -= 1;
+		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
+			sprintf(res, "%s\n", OVR_REPLY_CODE);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;
+		}
+		else
+			sprintf(res, "%s\n", NOK_REPLY_CODE);
+	}
+	else {
+		games[playerid - PLAYERID_MIN]n_letters -= 1;
+		if (games[playerid - PLAYERID_MIN]n_letters = 0) {
+			sprintf(res, "%s\n", WIN_REPLY_CODE);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;
+		}
+	}
+}
+
+
+void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
@@ -130,46 +208,44 @@ void guess_request_handler(char *buffer,size_t len,char *reply_ptr) {
 		char playerid[PLAYERID_SIZE + 1];
 		char word[MAX_WORD_SIZE + 1];
 		char trial[3];
+		char letter[2];
 		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
 
 		//check if parsing was successful
-		else if (playerid == NULL || letter == NULL || trial == NULL)
+		if(playerid == NULL || letter == NULL || trial == NULL)
 			sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check for spaces in the right places
-		else if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
+		else if(buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if the message ends with \n
-		else if (buffer[len - 1] != '\n') 
+		else if(buffer[len - 1] != '\n') 
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if player is valid
-		else if (!valid_playerid(playerid))
+		else if(!valid_playerid(playerid))
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
 
 		//check if player has an ongoing game
-		//TODO on_going_game_w_or_wo_moves
-		else if (!ongoing_game_w_or_wo_moves(playerid))
+		else if (games[atoi(playerid) - PLAYER_MIN]->trial < 1)
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if trial is valid
-		//TODO valid_trial()
-		else if (!valid_trial(trial, playerid)) 
+		else if (atoi(trial) != games[atoi(playerid) - PLAYER_MIN]->trial)
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
 
 		//make play
-		//TODO guess()
 		else {
 	   		char res[MAX_GUESS_REPLY_SIZE];	
-			guess(playerid, word, res);
-			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, res);
+			guess(atoi(playerid), word, res);
+			sprintf(reply,"%s %s %s\n", GUESS_REPLY_CODE, res, trial);
 		}
 	}	
 }
 
 
-void quit_request_handler(char *buffer,size_t len,char *reply_ptr) {
+void quit_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len)
 		sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
@@ -180,21 +256,15 @@ void quit_request_handler(char *buffer,size_t len,char *reply_ptr) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
-			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
-		//check if player has an ongoing game
-		//TODO omgoing_game_with_moves()
-		else if (!ongoing_game_with_moves(playerid))
-			sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
-
-		//starts the game
-		//TODO end_game()
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
+		//ends the game
 		else {
-			end_game(playerid);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
 		}
 	}
@@ -227,7 +297,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
     // having the udp socket completely set up
     // we can now process requests from clients
     char buffer[CLIENT_UDP_MAX_REQUEST_SIZE];
-    char reply[SERVER_UDP_MAX_REPLY_SIZE];
+    char reply[MAX_PLAY_REPLY_SIZE];
  
     memset(reply, '\0', sizeof(reply));
     
@@ -255,7 +325,7 @@ void udp_requests_handler(socket_ds* sockets_ds) {
             udp_select_requests_handler(buffer, nread, reply);
             
         } else {
-            strcpy(reply, CODE_ERROR_CODE);
+            strcpy(reply, ERROR_REPLY_CODE);
 
         }
 
@@ -309,6 +379,8 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 //--------------------------------------------------------------
 
 
+// FIX ME: add macros for SIZE, HINT_REPLY_CODE 
+
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
 	
 	//check if request is correct
@@ -325,7 +397,7 @@ void scoreboard_request_handler(char* request, size_t len, char* reply) {
 		char* filesize[SIZE];
 		char* filedata[SIZE];
 		scoreboard(filename_filesize);
-		sscanf(filename_filesize, "%s %s", filename, fileize);
+		sscanf(filename_filesize, "%s %s", filename, filesize);
 		
 		//open and read file
 		FILE* file = fopen(filename, "r");
@@ -365,7 +437,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 			char* filesize[SIZE];
 			char* filedata[SIZE];
 			hint(filename_filesize);
-			sscanf(filename_filesize, "%s %s", filename, fileize);
+			sscanf(filename_filesize, "%s %s", filename, filesize);
 		
 			//open and read file
 			FILE* file = fopen(filename, "r");
