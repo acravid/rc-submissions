@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include "request.h"
-#include "../game_server.h"
+#include "../GS.h"
 
 
 

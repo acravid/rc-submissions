@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "game_server.h"
+#include "GS.h"
 
 
 // create directories that stores game related
