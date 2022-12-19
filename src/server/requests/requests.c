@@ -108,18 +108,24 @@ void play(int playerid, char letter, char* res) {
 
 	if (strchr(games[playerid - PLAYERID_MIN].word, letter) == NULL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
+		int len = strlen(games[playerid - PLAYERID_MIN].played_letters);
+		games[playerid - PLAYERID_MIN].played_letters[len] = letter;
+		games[playerid - PLAYERID_MIN].played_letters[len + 1] = '\0';
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
-			sprintf(res, "%s", OVR_REPLY_CODE);
+			sprintf(res, "%s %d", OVR_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 		}
 		else
-			sprintf(res, "%s", NOK_REPLY_CODE);
+			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 	}
 	else {
 		games[playerid - PLAYERID_MIN].n_letters -= 1;
+		int len = strlen(games[playerid - PLAYERID_MIN].played_letters);
+		games[playerid - PLAYERID_MIN].played_letters[len] = letter;
+		games[playerid - PLAYERID_MIN].played_letters[len + 1] = '\0';
 		if (games[playerid - PLAYERID_MIN].n_letters = 0) {
-			sprintf(res, "%s", WIN_REPLY_CODE);
+			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 		}
@@ -176,7 +182,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 
 		//check if letter is duplicate
 		else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, letter[0]) != NULL)
-			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE);
+			sprintf(reply,"%s %s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE, trial);
 	
 		//check if player has an ongoing game
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
@@ -202,20 +208,18 @@ void guess(int playerid, char* word, char* res) {
 	if (strcmp(games[playerid - PLAYERID_MIN].word, word) != EQUAL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
-			sprintf(res, "%s\n", OVR_REPLY_CODE);
+			sprintf(res, "%s", OVR_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 		}
 		else
-			sprintf(res, "%s\n", NOK_REPLY_CODE);
+			sprintf(res, "%s", NOK_REPLY_CODE);
 	}
 	else {
-		games[playerid - PLAYERID_MIN].n_letters -= 1;
-		if (games[playerid - PLAYERID_MIN].n_letters = 0) {
-			sprintf(res, "%s\n", WIN_REPLY_CODE);
-			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-			games[playerid - PLAYERID_MIN].trial = 0;
-		}
+		printf("Ganhou\n");
+		sprintf(res, "%s", WIN_REPLY_CODE);
+		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+		games[playerid - PLAYERID_MIN].trial = 0;
 	}
 }
 
@@ -226,36 +230,45 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
 		sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
+		printf("aqui\n");
 		//read player id, word and trial
 		char playerid[PLAYERID_SIZE + 1];
 		char word[MAX_WORD_SIZE + 1];
 		char trial[3];
-		char letter[2];
-		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, letter, trial);
 
+		sscanf(&buffer[CODE_SIZE], "%s %s %s", playerid, word, trial);
+		printf("%s\n", playerid);
 		//check if parsing was successful
-		if(playerid == NULL || letter == NULL || trial == NULL)
+		if(playerid == NULL || word == NULL || trial == NULL)
 			sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check for spaces in the right places
-		else if(buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ')
+		else if(buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ') {
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-	
+			printf("a\n");
+		}
 		//check if the message ends with \n
-		else if(buffer[len - 1] != '\n') 
+		else if(buffer[len - 1] != '\n')  {
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
-	
+			printf("b\n");
+		}
 		//check if player is valid
-		else if(!valid_playerid(playerid))
-			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
+		else if(!valid_playerid(playerid)){
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+			printf("c\n");
+		}
 
 		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1){
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
+			printf("d\n");
+		}
 
 		//check if trial is valid
-		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial)
+		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial) {
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
+			printf("e\n");
+		}
 
 		//make play
 		else {

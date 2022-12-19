@@ -117,7 +117,7 @@ void tcp_request_handler(socket_ds*);
 #define ERROR -1
 #define SUCCESS 0
 #define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
-#define MAX_GUESS_REPLY_SIZE 10
+#define MAX_GUESS_REPLY_SIZE 11
 #define MAX_PLAY_REPLY_SIZE 76
 #define CODE_SIZE 3
 #define CLIENT_TCP_MAX_REQUEST_SIZE 11
@@ -139,7 +139,7 @@ void tcp_request_handler(socket_ds*);
 #define START_CODE "SNG"
 #define PLAY_CODE "PLG"
 #define GUESS_CODE "PWG"
-#define QUIT_CODE "RQT"
+#define QUIT_CODE "QUT"
 #define DEBUG_CODE "REV"
 
 #define START_REPLY_CODE "RSG"
