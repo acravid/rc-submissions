@@ -15,6 +15,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> 
 #include <netdb.h> 
+#include "../GS.h"
+
+#define MAX_WORD_SIZE 31
+#define SIZE 1000
 
 // NOTE: move common macros  and functions to a shared file (client,server)
 
@@ -38,7 +42,7 @@ typedef struct {
 	int trial;
 } player_info;
 
-void init_player_info();
+void init_player_info(input_args);
 
 //--------------------------------------------------------------
 //                  UDP Function Prototypes                                  
@@ -54,7 +58,7 @@ void exit_request_handler(char*,size_t,char*);
 void debug_request_handler(char*,size_t,char*);
 
 void udp_setup(socket_ds*, input_args);
-
+void udp_request_handler(socket_ds*);
 
 //  UDP Error messages
 
@@ -82,7 +86,7 @@ void hint_request_handler(char*,size_t,char*);
 void state_request_handler(char*,size_t,char*);
 
 void tcp_setup(socket_ds*, input_args);
-
+void tcp_request_handler(socket_ds*);
 
 
 
@@ -124,7 +128,6 @@ void tcp_setup(socket_ds*, input_args);
 #define ASCII_A 65
 #define ASCII_z 122
 #define PLAYERID_SIZE 6
-#define MAX_WORD_SIZE 30
 
 #define MAX_QUEUED_REQUESTS 10
 #define FORK_CHILD 0

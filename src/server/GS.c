@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h> // for creating directories
 #include "GS.h"
-
+#include "requests/request.h"
 
 // create directories that stores game related
 // information GAMES and SCORES
-void init_data() {
+void init_data(input_args args) {
 	
-	init_player_info();
+	init_player_info(args);
 
 	if(mkdir("GAMES",S_IRWXU) != SUCCESS) {
 		fprintf(stderr,ERROR_MKDIR);
@@ -31,12 +32,15 @@ static void usage() {
 // ./GS word_file [-p GSPort] [-v]
 input_args parse_args(int argc, char **argv) {
 
+	input_args args;
+
     if(argc == 1 || argc > 5) {
 	    usage();
 	    exit(EXIT_FAILURE);
     }
 
-  	input_args args = { .port = DEFAULT_GSPORT , .verbose_flag = false };
+  	args.port = DEFAULT_GSPORT;
+  	args.verbose_flag = false;
 
     if(argc >= 2) {
         
@@ -56,9 +60,8 @@ input_args parse_args(int argc, char **argv) {
 		}                
 
     }
-
-	return args;
     
+    return args;
 }
 
 // clean up server state, that is to say:
@@ -83,11 +86,9 @@ int main(int argc, char **argv) {
 
 
 	// initialize data storage
-	init_data();
-
+	init_data(args);
 	// create a child process
 	pid = fork();
-
 	// 0 is returned in the child
 	if(pid == 0) {
 		// child process responsible for handling udp requests
@@ -97,13 +98,13 @@ int main(int argc, char **argv) {
 		
 		// TODO: 
 		// catch ctrl-c with a signal handler
-		udp_setup(sockets_ds,args);
+		udp_setup(sockets_ds, args);
 		udp_request_handler(sockets_ds);
 
 	} else if(pid > 0) {
 		// calling process (parent)
 		// responsible for handling tcp requests
-		tcp_setup(sockets_ds,args);
+		tcp_setup(sockets_ds, args);
 		tcp_request_handler(sockets_ds);
 
 	} else {

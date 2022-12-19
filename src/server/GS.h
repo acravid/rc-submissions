@@ -10,17 +10,11 @@
 #define GS_H
 
 #include <stdbool.h> 
-#include <sys/stat.h> // for creating directories
-
-#include "requests/request.h"
-
 
 typedef struct {
-
     char *port;
     bool verbose_flag;
     char *word_file;
-
 } input_args;
 
 
@@ -31,6 +25,7 @@ typedef struct {
 #define DEFAULT_GSPORT "58091"
 #define MAX_STRING 65535
 #define EQUAL 0
+#define SUCCESS 0
 
 
 

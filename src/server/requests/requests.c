@@ -2,20 +2,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "request.h"
 #include "../GS.h"
+#include "request.h"
 
 player_info games[PLAYERID_MAX - PLAYERID_MIN];
+bool verbose;
+char word_file[28];
 
 //--------------------------------------------------------------
 //                  UDP Module                                  
 //--------------------------------------------------------------
-void init_player_info() {
+void init_player_info(input_args args) {
+	verbose = args.verbose_flag;
+	strcpy(word_file, args.word_file);
+	
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
-		strcpy("", games[i].word);
-		strcpy("", games[i].hint);
-		strcpy("", games[i].played_letters);
+		strcpy(games[i].word, "");
+		strcpy(games[i].hint, "");
+		strcpy(games[i].played_letters, "");
 	}
 }
 
@@ -37,7 +42,8 @@ void start_game(int playerid) {
 	char word[MAX_WORD_SIZE];
 	char hint[10000];
 	char line[1000];
-	FILE* file = fopen("../word_eng.txt", "r");
+
+	FILE* file = fopen(word_file, "r");
 	fgets(line, 1000, file);
 	sscanf(line, "%s %s", word, hint);
 		
@@ -52,37 +58,45 @@ void start_game(int playerid) {
 
 
 	games[playerid - PLAYERID_MIN].trial = 1;
-	strcpy(word, games[playerid - PLAYERID_MIN].word);
-	strcpy(hint, games[playerid - PLAYERID_MIN].hint);
+	strcpy(games[playerid - PLAYERID_MIN].word, word);
+	strcpy(games[playerid - PLAYERID_MIN].hint, hint);
 }
 
 void start_request_handler(char *buffer, size_t len, char *reply) {
+	printf("a\n");
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
+		printf("b\n");
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
+
 		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+		printf("%s\n%s", buffer, playerid);
 
 		//check for space after code and if message ends with \n
-		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
+		if (buffer[CODE_SIZE] != ' ' || buffer[len - 1] != '\n') {
 			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
+			printf("c\n");
+		}
 		//check if player is valid
-		else if (!valid_playerid(playerid))
+		else if (!valid_playerid(playerid)) {
 			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
-
+			printf("d\n");
+		}
 		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYERID_MIN].trial > 1)
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial > 1) {
 			sprintf(reply,"%s %s\n", START_REPLY_CODE, NOK_REPLY_CODE);
+			printf("e\n");
+		}
 
 		//starts the game
 		else {
 			start_game(atoi(playerid));
 			sprintf(reply,"%s %s %d %d\n", START_REPLY_CODE, OK_REPLY_CODE, 
-					games[int_playerid - PLAYERID_MIN].n_letters,
-					games[int_playerid - PLAYERID_MIN].n_errors);
+					games[atoi(playerid) - PLAYERID_MIN].n_letters,
+					games[atoi(playerid) - PLAYERID_MIN].n_errors);
 		}
 	}
 }
@@ -90,37 +104,39 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 void play(int playerid, char letter, char* res) {
 
 	games[playerid - PLAYERID_MIN].trial += 1;
+	printf("word: %s \nletter: %c\n", games[playerid - PLAYERID_MIN].word, letter);
 
-	if (strchr(pigames[playerid - PLAYERID_MIN].word, letter) == NULL) {
+	if (strchr(games[playerid - PLAYERID_MIN].word, letter) == NULL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
-			sprintf(res, "%s\n", OVR_REPLY_CODE);
+			sprintf(res, "%s", OVR_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 		}
 		else
-			sprintf(res, "%s\n", NOK_REPLY_CODE);
+			sprintf(res, "%s", NOK_REPLY_CODE);
 	}
 	else {
-		games[playerid - PLAYERID_MIN]n_letters -= 1;
-		if (games[playerid - PLAYERID_MIN]n_letters = 0) {
-			sprintf(res, "%s\n", WIN_REPLY_CODE);
+		games[playerid - PLAYERID_MIN].n_letters -= 1;
+		if (games[playerid - PLAYERID_MIN].n_letters = 0) {
+			sprintf(res, "%s", WIN_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 		}
 		else {
 			int count = 0;
 			int pos[MAX_WORD_SIZE];
-			for (int i = 0; i < strlen(games[playerid - PLAYERID_MIN]word); i++) {
-				if (games[playerid - PLAYERID_MIN]word[i] == letter) {
-					pos[count] = i;
+			for (int i = 0; i < strlen(games[playerid - PLAYERID_MIN].word); i++) {
+				if (games[playerid - PLAYERID_MIN].word[i] == letter) {
+					pos[count] = i + 1;
 					count += 1;
 				}
 			}
-			sprintf(res, "%s %d", OK_REPLY_CODE, count);
-			for (int i = 0, i < count; i++) {
+			sprintf(res, "%s %d %d", OK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1, count);
+			for (int i = 0; i < count; i++) {
 				sprintf(&res[strlen(res)], " %d", pos[i]);
 			}
+			printf("%s\n", res);
 		}
 	}
 }
@@ -159,15 +175,15 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if letter is duplicate
-		else if (strchr(games[playerid - PLAYERID_MIN]->played_letters, letter[0]) != NULL)
+		else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, letter[0]) != NULL)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE);
 	
 		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYERID_MIN]->trial < 1)
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if trial is valid
-		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN]->trial)
+		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
 
 		//make play
@@ -183,7 +199,7 @@ void guess(int playerid, char* word, char* res) {
 
 	games[playerid - PLAYERID_MIN].trial += 1;
 
-	if (strcmp(pigames[playerid - PLAYERID_MIN].word, word) != EQUAL) {
+	if (strcmp(games[playerid - PLAYERID_MIN].word, word) != EQUAL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
 			sprintf(res, "%s\n", OVR_REPLY_CODE);
@@ -194,8 +210,8 @@ void guess(int playerid, char* word, char* res) {
 			sprintf(res, "%s\n", NOK_REPLY_CODE);
 	}
 	else {
-		games[playerid - PLAYERID_MIN]n_letters -= 1;
-		if (games[playerid - PLAYERID_MIN]n_letters = 0) {
+		games[playerid - PLAYERID_MIN].n_letters -= 1;
+		if (games[playerid - PLAYERID_MIN].n_letters = 0) {
 			sprintf(res, "%s\n", WIN_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
@@ -234,11 +250,11 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);	
 
 		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYER_MIN]->trial < 1)
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if trial is valid
-		else if (atoi(trial) != games[atoi(playerid) - PLAYER_MIN]->trial)
+		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial)
 			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
 
 		//make play
@@ -269,8 +285,8 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		//ends the game
 		else {
-			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-			games[playerid - PLAYERID_MIN].trial = 0;
+			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
+			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
 		}
 	}
@@ -278,27 +294,28 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 
 
 int udp_select_requests_handler(char *buffer, size_t len, char *reply) {
-	
-    if(strncmp(START_CODE, buffer, CODE_SIZE)) {
+	printf("%s\n", buffer);
+    if(strncmp(START_CODE, buffer, CODE_SIZE) == EQUAL) {
         start_request_handler(buffer,len,reply);
     } 
-    else if(strncmp(PLAY_CODE, buffer, CODE_SIZE)) {
+    else if(strncmp(PLAY_CODE, buffer, CODE_SIZE) == EQUAL) {
         play_request_handler(buffer,len,reply);
     }
-    else if(strncmp(GUESS_CODE, buffer, CODE_SIZE)) {
+    else if(strncmp(GUESS_CODE, buffer, CODE_SIZE) == EQUAL) {
         guess_request_handler(buffer,len,reply);
     }
-    else if(strncmp(QUIT_CODE, buffer, CODE_SIZE)) {
+    else if(strncmp(QUIT_CODE, buffer, CODE_SIZE) == EQUAL) {
         quit_request_handler(buffer,len,reply);
     }
     else {
         sprintf(reply, "%s\n", ERROR_REPLY_CODE);
     }
+    printf("%s\n", reply);
 }
 
 
 // handle requests to separate handlers
-void udp_requests_handler(socket_ds* sockets_ds) {
+void udp_request_handler(socket_ds* sockets_ds) {
 
     // having the udp socket completely set up
     // we can now process requests from clients
@@ -316,30 +333,24 @@ void udp_requests_handler(socket_ds* sockets_ds) {
         addrlen = sizeof(addr);
 
         // receive client message from socket
-        size_t nread = recvfrom(sockets_ds->fd_udp,buffer,CLIENT_UDP_MAX_REQUEST_SIZE,AUTO_PROTOCOL,(struct sockaddr*)&addr,addrlen);
+        size_t nread = recvfrom(sockets_ds->fd_udp,buffer,CLIENT_UDP_MAX_REQUEST_SIZE,AUTO_PROTOCOL,(struct sockaddr*)&addr, &addrlen);
         if(nread == ERROR) {
             cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            fprint(stderr,ERROR_RECV_FROM);
+            fprintf(stderr,ERROR_RECV_FROM);
             exit(EXIT_FAILURE);
         }
 
-        // protocol states that request and reply end with '\n'
-        if(buffer[nread - 1] == '\n') {
-
-            // turn request to string 
-            buffer[nread - 1] = '\0';
-            udp_select_requests_handler(buffer, nread, reply);
-            
-        } else {
-            strcpy(reply, ERROR_REPLY_CODE);
-
-        }
+  
+        // turn request to string 
+        buffer[nread] = '\0';
+        udp_select_requests_handler(buffer, nread, reply);
+      
 
         // send reply back to client
         n = sendto(sockets_ds->fd_udp, reply, strlen(reply), AUTO_PROTOCOL, (struct sockaddr*)&addr,addrlen);
         if(n == ERROR) {
             cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            fprint(stderr,ERROR_SENDO_TO);
+            fprintf(stderr,ERROR_SENDO_TO);
             exit(EXIT_FAILURE);
         }
 
@@ -388,7 +399,7 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 // FIX ME: add macros for SIZE, HINT_REPLY_CODE 
 
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
-	
+/*	
 	//check if request is correct
 	if (strcmp("GSB\n", request) != EQUAL)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, ERROR_REPLY_CODE);
@@ -410,13 +421,13 @@ void scoreboard_request_handler(char* request, size_t len, char* reply) {
 		fread(filedata, SIZE, 1, file);
 
 		sprintf(reply, "%s %s %s %s %s\n", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
-	}
+	}*/
 }
 
 
 void hint_request_handler(char* buffer, size_t len, char* reply) {
 	//check if message sent has the right size
-	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
+	/*if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
 		//read player id
@@ -451,12 +462,12 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 			sprintf(reply, "%s %s %s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
 		}
-	}
+	}*/
 }
 
 
 void state_request_handler(char* buffer, size_t len, char *reply) {
-	//check if message sent has the right size
+	/*//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
@@ -493,7 +504,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			}
 		}
 	}
-
+*/
 
 }
 
@@ -506,7 +517,7 @@ void tcp_select_requests_handler(char* request, size_t len, char* reply) {
         hint_request_handler(request, len, reply);
     }
     else if(strncmp(STATE_CODE, request, CODE_SIZE)) {
-        status_request_handler(request, len, reply);
+        state_request_handler(request, len, reply);
     }
      else {
         sprintf(reply, "%s\n", ERROR_REPLY_CODE);
@@ -536,7 +547,7 @@ ssize_t read_bytes_tcp(int fd, char *buffer, size_t number_of_bytes) {
 
 
 // handle requests to different functions
-void tcp_requests_handler(socket_ds* sockets_ds) {
+void tcp_request_handler(socket_ds* sockets_ds) {
 
     int newfd;
     struct sockaddr_in addr;
@@ -557,13 +568,13 @@ void tcp_requests_handler(socket_ds* sockets_ds) {
 
         if(newfd == ERROR) {
             cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_udp_ptr);
-            fprint(stderr,ERROR_SENDO_TO);
+            fprintf(stderr,ERROR_SENDO_TO);
             exit(EXIT_FAILURE);
         }
         // create a new child process for each new connection
         pid = fork();
         if(pid == ERROR) {
-            fprint(stderr,ERROR_FORK);
+            fprintf(stderr,ERROR_FORK);
             exit(EXIT_FAILURE);
         } 
         else if(pid == FORK_CHILD) { // child process
@@ -580,7 +591,7 @@ void tcp_requests_handler(socket_ds* sockets_ds) {
             }
 			
 			//make request a string
-			request[nread] = '\0'
+			request[nread] = '\0';
 
             // process request buffer and handle to corresponding functions
 			tcp_select_requests_handler(request, nread, reply);
@@ -636,7 +647,7 @@ void tcp_setup(socket_ds* sockets_ds, input_args args) {
 // frees addrinfo and closes connection (fd)
 void cleanup_connection(int fd,struct addrinfo *addr) {
 
-	freeeaddrinfo(addr);
+	freeaddrinfo(addr);
 	close(fd);
 	
 }
