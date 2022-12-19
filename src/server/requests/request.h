@@ -137,8 +137,11 @@ void tcp_setup(socket_ds*, input_args);
 #define STATUS_CODE "STA"
 
 #define SCOREBOARD_REPLY_CODE "RSB"
+#define HINT_REPLY_CODE "RHL"
+#define STATE_REPLY_CODE "RST"
 
 
+#define OK_REPLY_CODE "NOK"
 #define NOK_REPLY_CODE "NOK"
 #define DUP_REPLY_CODE "DUP"
 #define INV_REPLY_CODE "INV"
