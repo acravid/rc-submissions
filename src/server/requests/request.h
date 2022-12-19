@@ -31,11 +31,11 @@ typedef struct {
 
 typedef struct {
 	char word[MAX_WORD_SIZE];
+	char hint[1000];
 	int n_letters;
 	int n_errors;
 	char played_letters[27];
 	int trial;
-
 } player_info;
 
 void init_player_info();

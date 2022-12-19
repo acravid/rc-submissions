@@ -14,6 +14,7 @@ void init_player_info() {
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
 		strcpy("", games[i].word);
+		strcpy("", games[i].hint);
 		strcpy("", games[i].played_letters);
 	}
 }
@@ -32,10 +33,14 @@ bool valid_letter(char* letter) {
 }
 
 void start_game(int playerid) {
+	//TODO sizes como deve ser
 	char word[MAX_WORD_SIZE];
-
-	//TODO:read word
-	
+	char hint[10000];
+	char line[1000];
+	FILE* file = fopen("../word_eng.txt", "r");
+	fgets(line, 1000, file);
+	sscanf(line, "%s %s", word, hint);
+		
 	int len = strlen(word);
 	games[playerid - PLAYERID_MIN].n_letters = len;
 	if (len <= 6)
@@ -48,6 +53,7 @@ void start_game(int playerid) {
 
 	games[playerid - PLAYERID_MIN].trial = 1;
 	strcpy(word, games[playerid - PLAYERID_MIN].word);
+	strcpy(hint, games[playerid - PLAYERID_MIN].hint);
 }
 
 void start_request_handler(char *buffer, size_t len, char *reply) {
