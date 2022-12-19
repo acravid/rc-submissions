@@ -9,6 +9,21 @@
 #include "data_handler.h"
 
 
+// creates a path of the following format ../GAMES/GAMES_plid.txt
+// and stores it to a variable pointed by file_path
+char *create_game_play_txt(char *plid,char *file_path) {
+
+    sprintf(file_path,GAME_WRITE_PLAYER_FILE,plid);
+    
+    FILE *file = fopen(file_path,"a");
+    if(file == NULL) {
+        fprintf(stderr,ERROR_OPEN_FILE,file_path);   
+    }
+    fclose(file);
+    return file_path;
+
+}
+
 
 // randomly select a line that contains a word to be guessed and the associated hint file
 // line format: word_to_guess hint_file.jpg
@@ -23,7 +38,7 @@ int select_random_word_hint(char *fname,char *buffer,int buffer_size) {
         fprintf(stderr,ERROR_OPEN_FILE,fname);
     }
     
-    while(fgets(buffer,buffer_size,fname) != NULL ) {
+    while(fgets(buffer,buffer_size,to_guess) != NULL ) {
         current_line++;
         if(current_line == selected_line) break;
     }
@@ -71,5 +86,3 @@ int find_last_game(char *plid,char *fname) {
     return found;
 
 }
-
-
