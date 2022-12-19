@@ -2,20 +2,34 @@
 
 # Compiler and Flags
 CC=gcc
-CFLAGS=
+CFLAGS =-W -std=gnu99 -I../
+
+all: client GS
+
+#client compilation
+client:  client/commands/commands.o client/player.o
+	$(CC) $(CFLAGS) -o client/player client/commands/commands.o client/player.o
+
+client/commands.o: client/player.h client/commands/commands.c client/commands/commands.h 
+	$(CC) $(CFLAGS) -o client/commands/commands.o -c client/commands/commands.c
+
+client/player.o: client/commands/commands.h client/player.c client/player.h
+	$(CC) $(CFLAGS) -o client/player.o -c client/player.c
 
 
-.PHONY: all clean 
+#Server compilation
+GS: server/data/data_handler.o server/requests/requests.o  server/GS.o
+	$(CC) $(CFLAGS) -o server/GS server/data/data_handler.o server/requests/requests.o server/GS.o
 
-#GServer
-all: GPlayer 
-GPlayer:client/player.c client/commands_tcp.o client/commands_udp.o 
+server/data/data_handler.o: server/data/data_handler.c server/data/data_handler.h
+	$(CC) $(CFLAGS) -o server/data/data_handler.o -c server/data/data_handler.c
 
-GPlayer: 
-	$(CC) $(CFLAGS) $^ -o $@
-
-
-clean: 
-	@rm -rf  */.o GPlayer
+server/requests.o: server/GS.h server/data/data_handler.data_handler server/requests/requests.c server/requests/requests.h 
+	$(CC) $(CFLAGS) -o server/requests/requests.o -c server/requests/requests.c
+ 
+server/GS.o: server/requests/request.h server/GS.c server/GS.h 
+	$(CC) $(CFLAGS) -o server/GS.o -c server/GS.c
 
 
+clean:
+	rm client/*.o client/commands/*.o server/*.o server/requests/*.o server/data/*.o client/player server/GS

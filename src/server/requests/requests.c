@@ -132,7 +132,7 @@ void play(int playerid, char letter, char* res) {
 		else {
 			int count = 0;
 			int pos[MAX_WORD_SIZE];
-			for (int i = 0; i < strlen(games[playerid - PLAYERID_MIN].word); i++) {
+			for (size_t i = 0; i < strlen(games[playerid - PLAYERID_MIN].word); i++) {
 				if (games[playerid - PLAYERID_MIN].word[i] == letter) {
 					pos[count] = i + 1;
 					count += 1;
@@ -149,7 +149,7 @@ void play(int playerid, char letter, char* res) {
 
 void play_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
-	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
+	size_t request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
 	if (request_size != len && request_size + 1 != len) //trial may have 2 digits
 		sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
@@ -226,7 +226,7 @@ void guess(int playerid, char* word, char* res) {
 
 void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
-	int request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
+	size_t request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
 		sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
@@ -346,7 +346,7 @@ void udp_request_handler(socket_ds* sockets_ds) {
         addrlen = sizeof(addr);
 
         // receive client message from socket
-        size_t nread = recvfrom(sockets_ds->fd_udp,buffer,CLIENT_UDP_MAX_REQUEST_SIZE,AUTO_PROTOCOL,(struct sockaddr*)&addr, &addrlen);
+        nread = recvfrom(sockets_ds->fd_udp,buffer,CLIENT_UDP_MAX_REQUEST_SIZE,AUTO_PROTOCOL,(struct sockaddr*)&addr, &addrlen);
         if(nread == ERROR) {
             cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
             fprintf(stderr,ERROR_RECV_FROM);

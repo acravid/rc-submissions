@@ -483,7 +483,7 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < filesize) {
+	while (r_buffer < (size_t)filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR) {
 			printf(ERROR_SEND_TCP);
@@ -597,7 +597,7 @@ int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < filesize) {
+	while (r_buffer < (size_t)filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR) {
 			printf(ERROR_SEND_TCP);
@@ -703,7 +703,7 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < filesize) {
+	while (r_buffer < (size_t)filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR) {
 			printf(ERROR_SEND_TCP);
@@ -737,7 +737,7 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 // frees addrinfo and closes connection (fd)
 void cleanup_connection(int fd,struct addrinfo *addr) {
 
-	freeeaddrinfo(addr);
+	freeaddrinfo(addr);
 	close(fd);
 	
 }
