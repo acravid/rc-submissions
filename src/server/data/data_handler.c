@@ -24,7 +24,7 @@ char *create_game_play_txt(char *plid,char *file_path) {
 
 }
 
-
+ 
 // randomly select a line that contains a word to be guessed and the associated hint file
 // line format: word_to_guess hint_file.jpg
 int select_random_word_hint(char *fname,char *buffer,int buffer_size) {
@@ -49,9 +49,39 @@ int select_random_word_hint(char *fname,char *buffer,int buffer_size) {
         buffer[buffer_length - 1] = '\0';
     }
 
-    return 0;
+    return false;
 
 }
+
+
+// write the game play to the player game file
+// NOTE: a player game file has the following format:
+// GAME_plid.txt 
+// a play can be a letter or guess 
+// T l
+// G word
+int write_game_play(char *file_path, char *buffer,char *mode) {
+    
+    // the stream is positioned at the beginning of the file
+    FILE *file = fopen(file_path,mode);
+    if(file_path == NULL) {
+        fprintf(stderr, "fopen(): failed to open file for writing");
+        exit(EXIT_FAILURE);
+
+    }
+
+    if(fprintf(file,"%s",buffer)!= strlen(buffer)) {
+        fprintf(stderr,"fprintf(): failed to transmit all bytes");
+        exit(EXIT_FAILURE);
+    }
+
+    if(fclose(file) != 0) {
+        fprintf(stderr, "fclose(): failed to close file");
+        exit(EXIT_FAILURE);
+    }
+    return false;
+}
+
 
 
 // find the last played game given a player id and stores the 
