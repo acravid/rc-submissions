@@ -35,7 +35,6 @@ typedef struct {
 
 typedef struct {
 	char word[MAX_WORD_SIZE];
-	char hint[1000];
 	int n_letters;
 	int n_errors;
 	char played_letters[27];
@@ -108,6 +107,9 @@ void tcp_request_handler(socket_ds*);
 #define ERROR_LISTEN "\n"\
 					 "ERROR "
 
+#define ERROR_SEND_TCP "\n"\
+						"TCP: An error has occurred while trying to send data over SOCK_STREAM\n"\
+
 
 //--------------------------------------------------------------
 //                              MACROS
@@ -117,13 +119,16 @@ void tcp_request_handler(socket_ds*);
 #define ERROR -1
 #define SUCCESS 0
 #define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
+#define HINT_REQUEST_SIZE 11
 #define MAX_GUESS_REPLY_SIZE 11
 #define MAX_PLAY_REPLY_SIZE 76
 #define CODE_SIZE 3
 #define CLIENT_TCP_MAX_REQUEST_SIZE 11
 #define SERVER_TCP_MAX_REPLY_SIZE 100000 // FIX ME LATER
-#define MAX_FILE_SIZE 1024 * 1024 * 1024
+#define MAX_FILE_SIZE 1024 * 1024
 #define MAX_HINT_REPLY_SIZE MAX_FILENAME + MAX_FILE_SIZE_DIGITS + MAX_FILE_SIZE
+#define MAX_SCOREBOARD_REPLY_SIZE MAX_FILENAME + MAX_FILE_SIZE_DIGITS + MAX_FILE_SIZE
+#define MAX_STATE_REPLY_SIZE MAX_FILENAME + MAX_FILE_SIZE_DIGITS + MAX_FILE_SIZE
 
 
 #define PLAYERID_MIN 90000
@@ -186,6 +191,9 @@ void tcp_request_handler(socket_ds*);
 
 #define ERROR_READ "\n"\
 				   "read(): an erros has occurred, failed to read ... bytes\n"
+
+#define ERROR_WRITE "\n"\
+				   "write(): an erros has occurred, failed to write ... bytes\n"
 
 /* Clean up socket resources: */
 void cleanup_connection(int,struct addrinfo*);

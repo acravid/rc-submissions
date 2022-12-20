@@ -20,7 +20,6 @@ void init_player_info(input_args args) {
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
 		strcpy(games[i].word, "");
-		strcpy(games[i].hint, "");
 		strcpy(games[i].played_letters, "");
 	}
 }
@@ -28,13 +27,11 @@ void init_player_info(input_args args) {
 bool valid_playerid(char* player_id) {
 	int id = atoi(player_id);
     return (id >= PLAYERID_MIN && id <= PLAYERID_MAX) ? true : false;
-
 }
 
 
 bool valid_letter(char letter) {
     return (letter >= ASCII_A && letter <= ASCII_z) ? true : false;
-	
 }
 
 bool word_tolower(char* word) {
@@ -68,7 +65,6 @@ void start_game(int playerid) {
 
 	games[playerid - PLAYERID_MIN].trial = 1;
 	strcpy(games[playerid - PLAYERID_MIN].word, word);
-	strcpy(games[playerid - PLAYERID_MIN].hint, hint);
 }
 
 void start_request_handler(char *buffer, size_t len, char *reply) {
@@ -422,44 +418,57 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 //--------------------------------------------------------------
 
 
-// FIX ME: add macros for SIZE, HINT_REPLY_CODE 
+// FIX ME: add macros for SIZE, HINT_REPLY_CODE
+
+void scoreboard(char* reply) {
+	char scoreboard_path_name[strlen(SCOREBOARD_FILE_NAME) + strlen(SCOREBOARD_FILE_PATH)];
+	char data[MAX_FILE_SIZE];
+	int size = 0;
+	sprintf(scoreboard_path_name, "%s%s", SCOREBOARD_FILE_PATH, SCOREBOARD_FILE_NAME);
+	FILE* scoreboard_file = fopen(SCOREBOARD_FILE_NAME, "r");
+	
+	for (char c = fgetc(scoreboard_file); c != EOF; c = fgetc(scoreboard_file), size += 1)
+		data[size] = c;
+	
+	if (size == 0)
+		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
+	else
+		sprintf(reply, "%s %d %s", SCOREBOARD_FILE_NAME, size, data);
+		
+	fclose(scoreboard_file);
+}
 
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
-/*	
+	
 	//check if request is correct
 	if (strcmp("GSB\n", request) != EQUAL)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, ERROR_REPLY_CODE);
-	
-	//TODO scoreboard_empty()
-	else if (scoreboard_empty())
-		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
-	//TODO scoreboard(), define sizes and haddle file open and read errors 
 	else {
-		char* filename_filesize[SIZE];
-		char* filename[SIZE];
-		char* filesize[SIZE];
-		char* filedata[SIZE];
-		scoreboard(filename_filesize);
-		sscanf(filename_filesize, "%s %s", filename, filesize);
+		char reply[MAX_SCOREBOARD_REPLY_SIZE];
+		// TODO calculate_scoreboard penso que nao precisa de receber nem devolver nada
+		// TODO ter uma função que mete o file da scoreboard vazio quando o server morre
+		// se deres mesmo delete no file o calculate_scoreboard tem que criar o file porque eu assumo
+		//que ele existe na função scoreboard
+		//calculate_scoreboard();
+		scoreboard(reply);
 		
-		//open and read file
-		FILE* file = fopen(filename, "r");
-		fread(filedata, SIZE, 1, file);
-
-		sprintf(reply, "%s %s %s %s %s\n", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
-	}*/
+		sprintf(reply, "%s %s %s\n", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, reply);
+	}
 }
 
-void hint(int playerid, char* reply) {
-	char hint_file_name[MAX_FILENAME + strlen(HINT_FILE_PATH)];
-	sprintf(hint_file_name, "%s%s", HINT_FILE_PATH, games[playerid - PLAYERID_MIN].hint);
-	FILE* hint_file = fopen(hint_file_name, "r");
+void hint(char* hint_name, char* reply) {
+	
+	char hint_path_name[strlen(hint_name) + strlen(HINT_FILE_PATH)];
 	char data[MAX_FILE_SIZE];
 	int size = 0;
+
+	sprintf(hint_path_name, "%s%s", HINT_FILE_PATH, hint_name);
+	FILE* hint_file = fopen(hint_path_name, "r");
+	
 	for (char c = fgetc(hint_file); c != EOF; c = fgetc(hint_file), size += 1)
 		data[size] = c;
 	
-	sprintf(reply, "%s %d %s", games[playerid - PLAYERID_MIN].hint, size, data);
+	sprintf(reply, "%s %d %s", hint_name, size, data);
 	fclose(hint_file);
 }
 
@@ -467,7 +476,7 @@ void hint(int playerid, char* reply) {
 void hint_request_handler(char* buffer, size_t len, char* reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -475,7 +484,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
@@ -486,16 +495,39 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
-			char res[MAX_HINT_REPLY_SIZE];
-			hint(atoi(playerid), res);
-			sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, res);
+			char hint_name[MAX_FILE_NAME];
+			//TODO: get_hint vai ao ficheiro do playerid buscar o nome do hint file e mete em hint_name
+			//      se esse ficheiro nao existir o player nao tem jogo e por isso hint_name fica a NULL
+			//get_hint(atoi(playerid), hint_name);
+			if (hint == NULL)
+				sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
+			else {
+				char res[MAX_HINT_REPLY_SIZE];
+				hint(hint_name, res);
+				sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, res);
+			}
 		}
 	}
 }
 
+void state(char* state_name, char* reply) {
+	char state_path_name[strlen(state_name) + strlen(STATE_FILE_PATH)];
+	char data[MAX_FILE_SIZE];
+	int size = 0;
+	
+	//TODO definir STATE_FILE_PATH
+	sprintf(state_path_name, "%s%s", STATE_FILE_PATH, state_name);
+	FILE* state_file = fopen(state_path_name, "r");
+	
+	for (char c = fgetc(state_file); c != EOF; c = fgetc(state_file), size += 1)
+		data[size] = c;
+	
+	sprintf(reply, "%s %d %s", state_name, size, data);
+	fclose(state_file);
+}
 
 void state_request_handler(char* buffer, size_t len, char *reply) {
-	/*//check if message sent has the right size
+	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
@@ -511,40 +543,34 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 		else if (!valid_playerid(playerid))
 			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
 
-		//TODO state(), define sizes and haddle file open and read errors 
 		else {
-			char* status_filename_filesize[SIZE];
-			char status[4];
-			char* filename[SIZE];
-			char* filesize[SIZE];
-			char* filedata[SIZE];
-			state(status_filename_filesize);
-			sscanf(filename_filesize, "%s %s %s", status, filename, fileize);
+			char state_file_name[MAX_FILE_NAME];
+			char reply[MAX_STATE_REPLY_SIZE];
+			//TODO get_state(int, char*) mete em char* o file name do state do player
+			// se não existir nem ativo nem no historico mete NULL
+			//get_state(atoi(playerid), state_file_name);
 
-			if (strcmp(NOK_REPLY_CODE, status) == EQUAL)
+			if (state_file_name == NULL) 
 				sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 			else {
 				//open and read file
-				FILE* file = fopen(filename, "r");
-				fread(filedata, SIZE, 1, file);
+				state(state_file_name, reply);
 
-				sprintf(reply, "%s %s %s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
+				sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, reply);
 			}
 		}
 	}
-*/
 
 }
 
 void tcp_select_requests_handler(char* request, size_t len, char* reply) {
-
-    if(strncmp(SCOREBOARD_CODE, request, CODE_SIZE)) {
+    if(strncmp(SCOREBOARD_CODE, request, CODE_SIZE) == EQUAL) {
         scoreboard_request_handler(request, len, reply);
     } 
-    else if(strncmp(HINT_CODE, request, CODE_SIZE)) {
+    else if(strncmp(HINT_CODE, request, CODE_SIZE) == EQUAL) {
         hint_request_handler(request, len, reply);
     }
-    else if(strncmp(STATE_CODE, request, CODE_SIZE)) {
+    else if(strncmp(STATE_CODE, request, CODE_SIZE) == EQUAL) {
         state_request_handler(request, len, reply);
     }
      else {
@@ -552,46 +578,20 @@ void tcp_select_requests_handler(char* request, size_t len, char* reply) {
     }
 }
 
-
-ssize_t read_bytes_tcp(int fd, char *buffer, size_t number_of_bytes) {    
-
-    // FIX ME 
-    // add timeout (timer)
-
-    ssize_t read_bytes = 0;
-    int reading = 1;
-
-    while (reading) {
-        ssize_t already_read;
-        already_read = read(fd,buffer,number_of_bytes - (size_t) read_bytes);
-        reading = (already_read == ERROR) && (errno == EINTR);
-        read_bytes += already_read;
-        if(already_read == ERROR) {
-            return ERROR;
-        }
-    }   
-    return (ssize_t) read_bytes;
-}
-
-
 // handle requests to different functions
 void tcp_request_handler(socket_ds* sockets_ds) {
 
-    int newfd;
     struct sockaddr_in addr;
-    socklen_t addrlen;
-    ssize_t n, nread;
+    socklen_t addrlen = sizeof(addr);;
+    size_t n, w_buffer;
     char request[CLIENT_TCP_MAX_REQUEST_SIZE];
     char reply[SERVER_TCP_MAX_REPLY_SIZE];
     pid_t pid;
- 
-    memset(reply,'\0', sizeof(reply));
     
     while(true) {
-
-        addrlen = sizeof(addr);
-
-        do newfd = accept(sockets_ds->fd_tcp,(struct sockaddr*)&addr,&addrlen);
+		int newfd = ERROR;
+		
+        do newfd = accept(sockets_ds->fd_tcp, (struct sockaddr*)&addr, &addrlen);
         while((newfd == ERROR) && (errno = EINTR));
 
         if(newfd == ERROR) {
@@ -601,32 +601,45 @@ void tcp_request_handler(socket_ds* sockets_ds) {
         }
         // create a new child process for each new connection
         pid = fork();
-        if(pid == ERROR) {
+        if (pid == ERROR) {
             fprintf(stderr,ERROR_FORK);
             exit(EXIT_FAILURE);
         } 
-        else if(pid == FORK_CHILD) { // child process
-            if(close(sockets_ds->fd_tcp) == ERROR) {
-                fprintf(stderr,ERROR_CLOSE);
+        else if (pid == FORK_CHILD) { // child process
+            if (close(sockets_ds->fd_tcp) == ERROR) {
+                fprintf(stderr, ERROR_CLOSE);
                 exit(EXIT_FAILURE);
             }
-			
-			//TODO acho esta função desnecessária, podia estar como no client
-            nread = read_bytes_tcp(newfd, request, strlen(request));
-            if(nread == ERROR) {
+			printf("Cria child\n");
+			n = read(newfd, request, HINT_REQUEST_SIZE);
+            if((int) n == ERROR) {
                 fprintf(stderr, ERROR_READ);
-                exit(EXIT_FAILURE);
+                close(newfd);
+				exit(EXIT_FAILURE);	
             }
-			
+            
 			//make request a string
-			request[nread] = '\0';
-
+			request[n] = '\0';
+			printf("Le: %s", request);
             // process request buffer and handle to corresponding functions
-			tcp_select_requests_handler(request, nread, reply);
-
-			//TODO write reply back to client
-			//TODO close socket and kill child process
+			tcp_select_requests_handler(request, n, reply);
+			printf("Tem a resposta: %s\n", reply);
+			size_t len = strlen(reply);
+			w_buffer = 0;
+			//read status filename filesize
+			while (w_buffer != len) {
+				n = write(newfd, reply, len - w_buffer);
+				if ((int) n == ERROR) {
+					fprintf(stderr, ERROR_WRITE);
+                	close(newfd);
+					exit(EXIT_FAILURE);
+				}
+				w_buffer += n;
+			}
+			printf("Acaba\n");
+			close(newfd);
 			
+			exit(EXIT_SUCCESS);	
         } 
 
     }

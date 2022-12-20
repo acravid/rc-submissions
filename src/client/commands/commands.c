@@ -678,7 +678,7 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 
 	int res = process_state_response(sockets_ds, game_stats);
 	
-	cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
+	cleanup_connection(sockets_ds->fd_tcp, sockets_ds->addrinfo_tcp_ptr);
 	
 	return res;
 }
@@ -717,10 +717,10 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < (size_t)filesize) {
+	while (r_buffer < (size_t) filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR) {
-			printf(ERROR_SEND_TCP);
+			printf(ERROR_RECV_TCP);
 			return ERROR;
 		}
 		r_buffer += n;
