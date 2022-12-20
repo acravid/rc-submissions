@@ -219,6 +219,12 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 		printf(INVALID_TRIAL_ERROR);
 		return ERROR;
 	}
+	//error
+	else if(strcmp(status_code, "ERR\n") == EQUAL) {
+		game_stats->last_play = ERR;
+		printf(PLAY_REQUEST_ERROR);
+		return ERROR;
+	}
 	
 	return SUCCESS;
 }
@@ -269,7 +275,7 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	else {
 		response[GUESS_RESPONSE_SIZE - 1] = '\0';		
 	}
-
+	
 	//process response
 	//error
 	if(strcmp(strtok(response, " "), "RWG") != EQUAL) {
@@ -278,8 +284,9 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 		printf(GUESS_REQUEST_ERROR);
 		return ERROR;
 	}
-
+	
 	char* status_code = strtok(NULL, " ");
+	
 	//correct guess
 	if(strcmp(status_code, "WIN") == EQUAL) {
 		game_stats->last_play = WIN;
@@ -297,6 +304,12 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	else if(strcmp(status_code, "INV") == EQUAL) {
 		game_stats->last_play = INV;
 		printf(INVALID_TRIAL_ERROR);
+		return ERROR;
+	}
+	//invalid word
+	else if(strcmp(status_code, "ERR\n") == EQUAL) {
+		game_stats->last_play = ERR;
+		printf(INVALID_WORD_ERROR);
 		return ERROR;
 	}
 	

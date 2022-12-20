@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include "../GS.h"
 #include "request.h"
 
@@ -31,10 +32,19 @@ bool valid_playerid(char* player_id) {
 }
 
 
-bool valid_letter(char* letter) {
-	char l = letter[0];
-    return (l >= ASCII_A && l <= ASCII_z) ? true : false;
+bool valid_letter(char letter) {
+    return (letter >= ASCII_A && letter <= ASCII_z) ? true : false;
 	
+}
+
+bool word_tolower(char* word) {
+	int len = (int) strlen(word);
+	for (int i = 0; i < len; i++) {
+		if (!valid_letter(word[i]))
+			return false;
+		word[i] = tolower(word[i]);
+	}
+	return true;
 }
 
 void start_game(int playerid) {
@@ -121,7 +131,7 @@ void play(int playerid, char letter, char* res) {
 	else {
 		int count = 0;
 		int pos[MAX_WORD_SIZE];
-		for (int i = 0; i < strlen(games[playerid - PLAYERID_MIN].word); i++) {
+		for (int i = 0; i < (int) strlen(games[playerid - PLAYERID_MIN].word); i++) {
 			if (games[playerid - PLAYERID_MIN].word[i] == letter) {
 				pos[count] = i + 1;
 				count += 1;
@@ -176,11 +186,11 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);	
 
 		//check if letter is valid
-		else if (!valid_letter(letter))
+		else if (!valid_letter(letter[0]))
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 
 		//check if letter is duplicate
-		else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, letter[0]) != NULL)
+		else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, tolower(letter[0])) != NULL)
 			sprintf(reply,"%s %s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE, trial);
 	
 		//check if player has an ongoing game
@@ -194,7 +204,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 		//make play
 		else {
 	   		char res[MAX_PLAY_REPLY_SIZE];	
-			play(atoi(playerid), letter[0], res);
+			play(atoi(playerid), tolower(letter[0]), res);
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
 		}
 	}
@@ -271,9 +281,13 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 
 		//make play
 		else {
-	   		char res[MAX_GUESS_REPLY_SIZE];	
-			guess(atoi(playerid), word, res);
-			sprintf(reply,"%s %s %s\n", GUESS_REPLY_CODE, res, trial);
+	   		char res[MAX_GUESS_REPLY_SIZE];
+	   		if (!word_tolower(word))
+	   			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+	   		else {
+				guess(atoi(playerid), word, res);
+				sprintf(reply,"%s %s %s\n", GUESS_REPLY_CODE, res, trial);
+			}
 		}
 	}	
 }

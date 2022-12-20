@@ -76,6 +76,7 @@
 #define PLAY_REQUEST_ERROR  "Error. Server wasn't able to fulfill the play request.\n"
 #define INVALID_TRIAL_ERROR "Error. Invalid trial number.\n"
 #define GUESS_REQUEST_ERROR  "Error. Player ID is invalid or there is no game running on the server.\n"
+#define INVALID_WORD_ERROR "Error. Invalid word guess.\n"
 #define QUIT_REQUEST_ERROR "Invalid player ID.\n"
 #define EMPTY_SCOREBOARD_ERROR "Scoreboard is empty.\n"
 #define NO_HINT_ERROR "The server has no hints for you.\n"
