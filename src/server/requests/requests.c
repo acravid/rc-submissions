@@ -433,26 +433,22 @@ void scoreboard(char* reply) {
 	if (size == 0)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
 	else
-		sprintf(reply, "%s %d %s", SCOREBOARD_FILE_NAME, size, data);
+		sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE_NAME, size, data);
 		
 	fclose(scoreboard_file);
 }
 
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
-	
 	//check if request is correct
 	if (strcmp("GSB\n", request) != EQUAL)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
-		char reply[MAX_SCOREBOARD_REPLY_SIZE];
 		// TODO calculate_scoreboard penso que nao precisa de receber nem devolver nada
 		// TODO ter uma função que mete o file da scoreboard vazio quando o server morre
 		// se deres mesmo delete no file o calculate_scoreboard tem que criar o file porque eu assumo
 		//que ele existe na função scoreboard
 		//calculate_scoreboard();
 		scoreboard(reply);
-		
-		sprintf(reply, "%s %s %s\n", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, reply);
 	}
 }
 
