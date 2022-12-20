@@ -26,6 +26,9 @@ typedef struct {
 #define MAX_STRING 65535
 #define EQUAL 0
 #define SUCCESS 0
+#define MAX_FILENAME 28
+#define MAX_FILE_SIZE_DIGITS 10
+#define HINT_FILE_PATH "./hints/"
 
 
 

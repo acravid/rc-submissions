@@ -450,10 +450,23 @@ void scoreboard_request_handler(char* request, size_t len, char* reply) {
 	}*/
 }
 
+void hint(int playerid, char* reply) {
+	char hint_file_name[MAX_FILENAME + strlen(HINT_FILE_PATH)];
+	sprintf(hint_file_name, "%s%s", HINT_FILE_PATH, games[playerid - PLAYERID_MIN].hint);
+	FILE* hint_file = fopen(hint_file_name, "r");
+	char data[MAX_FILE_SIZE];
+	int size = 0;
+	for (char c = fgetc(hint_file); c != EOF; c = fgetc(hint_file), size += 1)
+		data[size] = c;
+	
+	sprintf(reply, "%s %d %s", games[playerid - PLAYERID_MIN].hint, size, data);
+	fclose(hint_file);
+}
+
 
 void hint_request_handler(char* buffer, size_t len, char* reply) {
 	//check if message sent has the right size
-	/*if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
+	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
 		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
 		//read player id
@@ -466,29 +479,18 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 
 		//check if player has an ongoing game
-		//TODO ongoing_game_w_or_wo_moves()
-		else if (!ongoing_game_w_or_wo_moves(playerid))
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1) 
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
-		//TODO hint(), define sizes and haddle file open and read errors 
 		else {
-			char* filename_filesize[SIZE];
-			char* filename[SIZE];
-			char* filesize[SIZE];
-			char* filedata[SIZE];
-			hint(filename_filesize);
-			sscanf(filename_filesize, "%s %s", filename, filesize);
-		
-			//open and read file
-			FILE* file = fopen(filename, "r");
-			fread(filedata, SIZE, 1, file);
-
-			sprintf(reply, "%s %s %s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, filename, filesize, filedata);
+			char res[MAX_HINT_REPLY_SIZE];
+			hint(atoi(playerid), res);
+			sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, res);
 		}
-	}*/
+	}
 }
 
 
