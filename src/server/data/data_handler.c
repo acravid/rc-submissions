@@ -70,7 +70,7 @@ int write_game_play(char *file_path, char *buffer,char *mode) {
 
     }
 
-    if(fprintf(file,"%s",buffer)!= strlen(buffer)) {
+    if(fprintf(file,"%s",buffer)!= (int)strlen(buffer)) {
         fprintf(stderr,"fprintf(): failed to transmit all bytes");
         exit(EXIT_FAILURE);
     }
