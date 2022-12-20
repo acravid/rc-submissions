@@ -74,7 +74,7 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 		return ERROR;
 	}
 
-	//receive the response from he server
+	//receive the response from the server
 	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, START_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
 	if(ret_recv_udp_response == ERROR) {
 		printf(ERROR_RECV_UDP);
@@ -157,6 +157,7 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 		printf(ERROR_RECV_UDP);
 		return ERROR;
 	}
+	response[ret_recv_udp_response] = '\0';
 
 	return process_play_response(response, ret_recv_udp_response, game_stats);
 }
@@ -737,7 +738,7 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 // frees addrinfo and closes connection (fd)
 void cleanup_connection(int fd,struct addrinfo *addr) {
 
-	freeeaddrinfo(addr);
+	freeaddrinfo(addr);
 	close(fd);
 	
 }
