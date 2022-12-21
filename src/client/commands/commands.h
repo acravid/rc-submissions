@@ -25,6 +25,8 @@
 #define STATE_REQUEST_SIZE 11
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 8
+#define MAX_PLAYERID_SIZE 7
+#define MAX_WORD_SIZE 31
 
 /*UDP error messages: */
 #define ERROR_FD_UDP  "\n"\
@@ -109,7 +111,7 @@ typedef struct {
 
 /*---------------UDP Function prototypes---------------*/
 /* Setup: */
-void udp_setup(socket_ds*,optional_args);
+void udp_setup(socket_ds*, optional_args);
 
 /*Requests: */
 int send_start_request(socket_ds*, game_status*);
@@ -127,7 +129,7 @@ int send_hint_request(socket_ds*, optional_args, game_status*);
 int send_state_request(socket_ds*, optional_args, game_status*);
 
 /* Clean up socket resources: */
-void cleanup_connection(int,struct addrinfo*);
+void cleanup_connection(int, struct addrinfo*);
 
 
 #endif /* COMMANDS_H */

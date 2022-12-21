@@ -51,7 +51,7 @@ bool word_tolower(char* word) {
 
 void start_game(char *player_id) {
 
-	
+	printf("-a\n");
 	char word[MAX_WORD_SIZE];
 	char hint[MAX_HINT_FILE_NAME_LENGHT];
 	char line[MAX_LINE_LENGTH];
@@ -59,16 +59,16 @@ void start_game(char *player_id) {
 	char write_info[MAX_LINE_LENGTH];
     create_game_play_txt(player_id,file_path);
     
-	
+	printf("-b\n");
 	fgets(line,MAX_LINE_LENGTH,word_file);
-
+	printf("-c\n");
 	// write selected guess word and hint filename to player's ongoing game file
 	sscanf(line, "%s %s", word, hint);
 	sprintf(write_info,"%s %s\n",word,hint);
-
+	printf("-d\n");
 	// write selected guess word and hint filename to player's ongoing game file
 	write_game_play(file_path,write_info,WRITING_MODE);
-	
+	printf("-e\n");
 	
 	int len = strlen(word);
 	int playerid = atoi(player_id);
@@ -80,9 +80,10 @@ void start_game(char *player_id) {
 	else
 		games[playerid - PLAYERID_MIN].n_errors = 9;
 
-
+	printf("-a\n");
 	games[playerid - PLAYERID_MIN].trial = 1;
 	strcpy(games[playerid - PLAYERID_MIN].word, word);
+	printf("-a\n");
 }
 
 void start_request_handler(char *buffer, size_t len, char *reply) {
@@ -380,13 +381,19 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 
 void quit_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
-	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len)
+	printf("a\n");
+	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) {
 		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		printf("b\n");
+	}
 	else {
+		printf("c\n");
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
-		sscanf(&buffer[CODE_SIZE], "%s", playerid);
-
+		if (sscanf(&buffer[CODE_SIZE], "%s", playerid) == EOF)
+			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		if (playerid == NULL)
+			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
@@ -399,6 +406,7 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, NOK_REPLY_CODE);
 		//ends the game
 		else {
+			printf("aqui nao quero\n");
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
@@ -458,14 +466,16 @@ void udp_request_handler(socket_ds* sockets_ds) {
         }
 
   		printf("aqui\n");
-        // turn request to string 
-        buffer[ret_udp_request] = '\0';
+        // turn request to string
+        if (ret_udp_request < CLIENT_UDP_MAX_REQUEST_SIZE)
+        	buffer[ret_udp_request] = '\0';
+        else
+        	buffer[MAX_PLAY_REPLY_SIZE - 1] = '\0';
         
         if (verbose)
 			printf("IP: %s Port: %u Sent: %s", inet_ntoa(addr.sin_addr), addr.sin_port, buffer);
 			
         udp_select_requests_handler(buffer, ret_udp_request, reply);
-      	
 
         // send reply back to client
         ret_udp_response = ERROR;
@@ -482,9 +492,6 @@ void udp_request_handler(socket_ds* sockets_ds) {
 				timeout_count += 1;
 			}
 		}
-		
-		if (verbose)
-			printf("Sent to: %s\n", inet_ntoa(addr.sin_addr));
 
     }
 
@@ -615,7 +622,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
-			char hint_name[MAX_FILE_NAME];
+			char hint_name[MAX_FILENAME];
 			//TODO: get_hint vai ao ficheiro do playerid buscar o nome do hint file e mete em hint_name
 			//      se esse ficheiro nao existir o player nao tem jogo e por isso hint_name fica a NULL
 			//get_hint(atoi(playerid), hint_name);
@@ -664,7 +671,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
 
 		else {
-			char state_file_name[MAX_FILE_NAME];
+			char state_file_name[MAX_FILENAME];
 			char reply[MAX_STATE_REPLY_SIZE];
 			//TODO get_state(int, char*) mete em char* o file name do state do player
 			// se não existir nem ativo nem no historico mete NULL
@@ -829,8 +836,8 @@ void tcp_setup(socket_ds* sockets_ds, input_args args) {
 		exit(EXIT_FAILURE);
     }
 
-    if(listen(sockets_ds->fd_tcp,MAX_QUEUED_REQUESTS) == ERROR) {
-        fprintf(stderr,ERROR_LISTEN);
+    if(listen(sockets_ds->fd_tcp, MAX_QUEUED_REQUESTS) == ERROR) {
+        fprintf(stderr, ERROR_LISTEN);
         exit(EXIT_FAILURE);
     }
 

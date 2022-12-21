@@ -10,8 +10,6 @@
 /*---------------MACROS---------------*/
 
 /*Maximum values: */
-#define MAX_STRING 65535
-#define BUFFER_SIZE 512
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
 #define SOCKET_TIMEOUT 1
@@ -101,6 +99,6 @@ typedef struct {
 
 /*---------------Function prototype---------------*/
 
-void get_word(char*);
+void get_word(char*, int);
 
 #endif /* PLAYER_H */
