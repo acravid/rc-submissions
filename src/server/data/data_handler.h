@@ -16,11 +16,15 @@
 int select_random_word_hint(char*,char*,int);
 int find_last_game(char*,char*);
 
-void write_game_play(char *file_path, char *buffer,char *mode);
+void write_game_play(char*,char*,char*);
 void create_game_play_txt(char*,char*); 
 void write_game_play_to_file(char *,char*,char*);
 void create_player_game_directory(char*);
 void rename_and_move_player_file(char*,char);
+void get_hint_filename(char*,char*);
+
+
+
 
 
 // Macros
@@ -75,6 +79,8 @@ void rename_and_move_player_file(char*,char);
 #define FILE_NAME_MAX_LENGTH 50
 #define NUMBER_OF_LINES_GUESS_FILE 26
 #define TEXT_FILE_LENGTH 64
+
+#define MAX_WORD_SIZE_HINT 31 
 
 #define SUCESS 0
 #define ERROR -1

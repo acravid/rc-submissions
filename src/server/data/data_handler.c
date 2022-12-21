@@ -149,6 +149,49 @@ void write_game_play(char *file_path, char *buffer,char *mode) {
 }
 
 
+
+void get_hint_filename(char *buffer,char *player_id) {
+
+    printf("Depois de entrar na get_hint_filename\n");
+
+    char *file_path = NULL;
+    char *line = NULL;
+    char *word = NULL;
+
+    file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
+    word = (char*)malloc(sizeof(char) * MAX_WORD_SIZE_HINT);
+    line = (char*)malloc(sizeof(char) * MAX_LINE_LENGTH);
+
+    if(file_path == NULL) {
+        fprintf(stderr,ERROR_MALLOC_FILE);
+    }   
+
+    // shape possible ongoing game filepath
+
+    // find ongoing game paths
+    sprintf(file_path,GAMES_DATA_ONGOING,player_id); 
+
+       
+    FILE *file = fopen(file_path,"r");
+    if(file == NULL) {
+        // set buffer to null 
+        memset(buffer,strlen(buffer),'\0');
+        
+    }
+
+    fgets(line,MAX_LINE_LENGTH,file);
+    sscanf(line, "%s %s",word,buffer);
+
+    printf("o ficheiro e:");
+    printf("%s",buffer);
+    
+
+    free(file_path);
+    free(line);
+    free(word);
+
+}
+
 // TODO: description
 void write_game_play_to_file(char * player_id,char *info,char *type) {
 
