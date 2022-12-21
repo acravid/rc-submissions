@@ -385,10 +385,12 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		//ends the game
 		else {
 			printf("aqui nao quero\n");
+			
 			// NOTE: add comments
 			create_player_game_directory(playerid); 
 			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT);	
 				
+			
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
