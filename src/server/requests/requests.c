@@ -55,20 +55,15 @@ void start_game(char *player_id) {
 	char word[MAX_WORD_SIZE];
 	char hint[MAX_HINT_FILE_NAME_LENGHT];
 	char line[MAX_LINE_LENGTH];
-	char file_path[PATH_ONGOING_GAME_LENGTH];
 	char write_info[MAX_LINE_LENGTH];
-    create_game_play_txt(player_id,file_path);
-    
-	printf("-b\n");
+
 	fgets(line,MAX_LINE_LENGTH,word_file);
-	printf("-c\n");
-	// write selected guess word and hint filename to player's ongoing game file
+
 	sscanf(line, "%s %s", word, hint);
 	sprintf(write_info,"%s %s\n",word,hint);
-	printf("-d\n");
-	// write selected guess word and hint filename to player's ongoing game file
-	write_game_play(file_path,write_info,WRITING_MODE);
-	printf("-e\n");
+
+	// write selected word and its hint filename to player's ongoing game file
+	write_game_play_to_file(player_id,write_info,START_CODE);
 	
 	int len = strlen(word);
 	int playerid = atoi(player_id);

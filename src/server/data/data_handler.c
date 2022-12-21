@@ -174,6 +174,9 @@ void write_game_play_to_file(char * player_id,char *info,char *type) {
 	    sprintf(write_info,WRITE_GUESS,PLAY_GUESS_CODE,info);
 	    write_game_play(file_path,write_info,APPEND_MODE);
 
+    } else if(strcmp(type,START) == SUCESS) {
+	    write_game_play(file_path,info,WRITING_MODE);
+
     }
 
     free(file_path);

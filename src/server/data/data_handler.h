@@ -42,6 +42,7 @@ void rename_and_move_player_file(char*,char);
 #define WRITE_GUESS "%s%s\n"
 #define PLAY "PLG"
 #define GUESS "PWG"
+#define START "SNG"
 
 #define TERMINATION_STATUS_WIN 'W'
 #define TERMINATION_STATUS_FAIL 'F'
