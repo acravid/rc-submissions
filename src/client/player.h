@@ -34,7 +34,7 @@
 #define EXIT_COMMAND "exit"
 
 /*Default settings: */
-#define DEFAULT_GSIP "kali"
+#define DEFAULT_GSIP "unknown448500531966.lan"
 #define DEFAULT_GSPORT "58091"
 
 /*Pathnames: */

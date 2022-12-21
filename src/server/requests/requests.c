@@ -3,8 +3,11 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+
 #include "../GS.h"
 #include "request.h"
+#include "../data/data_handler.h"
+
 
 player_info games[PLAYERID_MAX - PLAYERID_MIN];
 bool verbose;
@@ -44,16 +47,29 @@ bool word_tolower(char* word) {
 	return true;
 }
 
-void start_game(int playerid) {
-	//TODO sizes como deve ser
-	char word[MAX_WORD_SIZE];
-	char hint[10000];
-	char line[1000];
+void start_game(char *player_id) {
 
-	fgets(line, 1000, word_file);
+	
+	char word[MAX_WORD_SIZE];
+	char hint[MAX_HINT_FILE_NAME_LENGHT];
+	char line[MAX_LINE_LENGTH];
+	char file_path[PATH_ONGOING_GAME_LENGTH];
+	char write_info[MAX_LINE_LENGTH];
+    create_game_play_txt(player_id,file_path);
+    
+	
+	fgets(line,MAX_LINE_LENGTH,word_file);
+
+	// write selected guess word and hint filename to player's ongoing game file
 	sscanf(line, "%s %s", word, hint);
-		
+	sprintf(write_info,"%s %s\n",word,hint);
+
+	// write selected guess word and hint filename to player's ongoing game file
+	write_game_play(file_path,write_info,WRITING_MODE);
+	
+	
 	int len = strlen(word);
+	int playerid = atoi(player_id);
 	games[playerid - PLAYERID_MIN].n_letters = len;
 	if (len <= 6)
 		games[playerid - PLAYERID_MIN].n_errors = 7;
@@ -98,7 +114,7 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 
 		//starts the game
 		else {
-			start_game(atoi(playerid));
+			start_game(playerid);
 			sprintf(reply,"%s %s %d %d\n", START_REPLY_CODE, OK_REPLY_CODE, 
 					games[atoi(playerid) - PLAYERID_MIN].n_letters,
 					games[atoi(playerid) - PLAYERID_MIN].n_errors);

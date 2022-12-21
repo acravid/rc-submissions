@@ -32,6 +32,9 @@ typedef struct {
 #define SCOREBOARD_FILE_PATH "./"
 #define SCOREBOARD_FILE_NAME "scoreboard.txt"
 #define STATE_FILE_PATH "./"
+#define GAME_DATA_DIR "GAME_DATA"
+#define GAMES_DIR "GAME_DATA/GAMES"
+#define SCORES_DIR "GAME_DATA/SCORES"
 #define MAX_FILE_NAME 28
 #define SOCKET_TIMEOUT 1
 #define MAX_TIMEOUTS 2

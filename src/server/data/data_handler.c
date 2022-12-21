@@ -3,25 +3,24 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <errno.h>
 #include <dirent.h>
 
 #include "data_handler.h"
 
 
-// creates a path of the following format ../GAMES/GAMES_plid.txt
+// creates a path of the following format GAME_DATA/GAMES/GAMES_plid.txt
 // and stores it to a variable pointed by file_path
-char *create_game_play_txt(char *plid,char *file_path) {
+void create_game_play_txt(char *plid,char *file_path) {
 
-    sprintf(file_path,GAME_WRITE_PLAYER_FILE,plid);
+    sprintf(file_path,GAMES_DATA_ONGOING,plid);
     
     FILE *file = fopen(file_path,"a");
     if(file == NULL) {
-        fprintf(stderr,ERROR_OPEN_FILE,file_path);   
+        fprintf(stderr,"fopen(): failed to open");   
     }
-    fclose(file);
-    return file_path;
 
+    fclose(file);
+   
 }
 
  
@@ -60,7 +59,7 @@ int select_random_word_hint(char *fname,char *buffer,int buffer_size) {
 // a play can be a letter or guess 
 // T l
 // G word
-int write_game_play(char *file_path, char *buffer,char *mode) {
+void write_game_play(char *file_path, char *buffer,char *mode) {
     
     // the stream is positioned at the beginning of the file
     FILE *file = fopen(file_path,mode);
@@ -79,7 +78,7 @@ int write_game_play(char *file_path, char *buffer,char *mode) {
         fprintf(stderr, "fclose(): failed to close file");
         exit(EXIT_FAILURE);
     }
-    return false;
+
 }
 
 
