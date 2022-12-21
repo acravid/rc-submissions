@@ -366,7 +366,7 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		if (sscanf(&buffer[CODE_SIZE], "%s", playerid) == EOF)
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		if (playerid == NULL)
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
