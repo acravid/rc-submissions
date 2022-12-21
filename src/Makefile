@@ -8,7 +8,7 @@ all: client GS
 
 #client compilation
 client:  client/commands/commands.o client/player.o
-	$(CC) $(CFLAGS) -o client/player client/commands/commands.o client/player.o
+	$(CC) $(CFLAGS) -o player client/commands/commands.o client/player.o
 
 client/commands.o: client/player.h client/commands/commands.c client/commands/commands.h 
 	$(CC) $(CFLAGS) -o client/commands/commands.o -c client/commands/commands.c
@@ -19,7 +19,7 @@ client/player.o: client/commands/commands.h client/player.c client/player.h
 
 #Server compilation
 GS: server/data/data_handler.o server/requests/requests.o  server/GS.o
-	$(CC) $(CFLAGS) -o server/GS server/data/data_handler.o server/requests/requests.o server/GS.o
+	$(CC) $(CFLAGS) -o GS server/data/data_handler.o server/requests/requests.o server/GS.o
 
 server/data/data_handler.o: server/data/data_handler.c server/data/data_handler.h
 	$(CC) $(CFLAGS) -o server/data/data_handler.o -c server/data/data_handler.c
@@ -32,4 +32,4 @@ server/GS.o: server/requests/request.h server/GS.c server/GS.h
 
 
 clean:
-	rm client/*.o client/commands/*.o server/*.o server/requests/*.o server/data/*.o client/player server/GS
+	rm -r client/*.o client/commands/*.o server/*.o server/requests/*.o server/data/*.o player GS GAME_DATA/
