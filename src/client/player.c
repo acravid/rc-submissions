@@ -33,7 +33,6 @@ void print_state(game_status*);
 
 /*Play the game: */
 void handle_input(socket_ds*, optional_args, game_status*);
-void end_game(game_status*);
 
 /*---------------Functions---------------*/
 
@@ -53,14 +52,6 @@ int main(int argc, char **argv) {
 	// waits for, reads and handles user inputs
 	handle_input(sockets_ds, opt_args, game_stats);
 
-	// Exiting
-	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
-	close(sockets_ds->fd_udp);
-	free(sockets_ds);
-	
-	end_game(game_stats);
-	free(game_stats);
-	
 	exit(EXIT_SUCCESS);
 }
 
@@ -129,20 +120,13 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 		}
 		//play command
 		else if(strcmp(command, PLAY_COMMAND) == EQUAL || strcmp(command, SHORT_PLAY_COMMAND) == EQUAL) {
-			if(send_play_request(sockets_ds, game_stats) == SUCCESS) {
+			if(send_play_request(sockets_ds, game_stats) == SUCCESS) 
 				print_play(game_stats);
-				if(game_stats->last_play == WIN || game_stats->last_play == OVR)
-					end_game(game_stats);
-			}
 		}
 		//guess command
 		else if(strcmp(command, GUESS_COMMAND) == EQUAL || strcmp(command, SHORT_GUESS_COMMAND) == EQUAL) {
-			if(send_guess_request(sockets_ds,game_stats) == SUCCESS) {
+			if(send_guess_request(sockets_ds,game_stats) == SUCCESS) 
 				print_guess(game_stats);
-				if (game_stats->last_play == WIN || game_stats->last_play == OVR)
-					end_game(game_stats);				
-			}
-			
 		}
 		//scoreboard command
 		else if(strcmp(command, SCOREBOARD_COMMAND) == EQUAL || strcmp(command, SHORT_SCOREBOARD_COMMAND) == EQUAL) {
@@ -157,11 +141,8 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 		}
 		//state command
 		else if (strcmp(command, STATE_COMMAND) == EQUAL || strcmp(command, SHORT_STATE_COMMAND) == EQUAL) {
-			if(send_state_request(sockets_ds, opt_args, game_stats) == SUCCESS) {
+			if(send_state_request(sockets_ds, opt_args, game_stats) == SUCCESS) 
 				print_state(game_stats);
-				if(strcmp(game_stats->state_status, "FIN") == EQUAL)
-					end_game(game_stats);
-			}
 		}
 		//quit command
 		else if (strcmp(command, QUIT_COMMAND) == EQUAL) {
@@ -196,7 +177,7 @@ void get_word(char* word, int max_size) {
 
 //Prints response to a successful start command 
 void print_start(game_status* game_stats) {
-	
+
 	printf("New game started (max %d errors): ", game_stats->n_errors);
 	for(int i = 1; i <= game_stats->n_letters; i++) {
 		printf("_ ");
@@ -279,13 +260,5 @@ void print_state(game_status* game_stats) {
 	while ((c = fgetc(file)) != EOF)
 		printf("%c", c);
 	fclose(file);
-
-}
-
-//Alters game_stats to reflect the end of a game
-void end_game(game_status* game_stats) {
-	
-	if (game_stats->running == YES) 
-		free(game_stats->word);
 
 }

@@ -36,12 +36,12 @@
 #define DEFAULT_GSPORT "58091"
 
 /*Pathnames: */
-#define SCOREBOARD_PATHNAME "./"
-#define SCOREBOARD_PATHNAME_SIZE 2
-#define HINT_PATHNAME "./"
-#define HINT_PATHNAME_SIZE 2
-#define STATE_PATHNAME "./"
-#define STATE_PATHNAME_SIZE 2
+#define SCOREBOARD_PATHNAME "./client/received_files/"
+#define SCOREBOARD_PATHNAME_SIZE 25
+#define HINT_PATHNAME "./client/received_files/"
+#define HINT_PATHNAME_SIZE 25
+#define STATE_PATHNAME "./client/received_files/"
+#define STATE_PATHNAME_SIZE 25
 
 /*Messages: */
 #define USAGE_INFO  "\n"\
