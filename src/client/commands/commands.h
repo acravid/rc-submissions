@@ -87,6 +87,7 @@
 #define EMPTY_SCOREBOARD_ERROR "Scoreboard is empty.\n"
 #define NO_HINT_ERROR "The server has no hints for you.\n"
 #define NO_SERVER_GAME_ERROR "Error. Invalid player ID or no games (active or finished) for that player in the server.\n"
+#define QUIT_REQUEST_NOK "Error. Can't quit because the server doesn't have a game active for that player.\n"
 
 
 /*Others: */

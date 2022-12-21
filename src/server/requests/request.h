@@ -20,6 +20,8 @@
 
 #define MAX_WORD_SIZE 31
 #define SIZE 1000
+#define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
+#define SERVER_UDP_MAX_RESPONSE_SIZE  73 // play response
 
 // NOTE: move common macros  and functions to a shared file (client,server)
 
@@ -40,6 +42,8 @@ typedef struct {
 	int n_errors;
 	char played_letters[27];
 	int trial;
+	char last_request[CLIENT_UDP_MAX_REQUEST_SIZE];
+	char last_response[SERVER_UDP_MAX_RESPONSE_SIZE];
 } player_info;
 
 void init_player_info(input_args, FILE*);
@@ -125,7 +129,6 @@ void tcp_request_handler(socket_ds*);
 #define AUTO_PROTOCOL 0
 #define ERROR -1
 #define SUCCESS 0
-#define CLIENT_UDP_MAX_REQUEST_SIZE  46 // guess request
 #define HINT_REQUEST_SIZE 11
 #define MAX_GUESS_REPLY_SIZE 11
 #define MAX_PLAY_REPLY_SIZE 76

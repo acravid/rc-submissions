@@ -6,27 +6,9 @@
 #include "GS.h"
 #include "requests/request.h"
 
-socket_ds* sockets_ds;
-FILE* file;
-
-// clean up server state, that is to say:
-// close open socket connections
-// free resources
-void cleanup_server() {
-	printf("pls\n");
-	// Exiting
-	fclose(file);
-	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
-	close(sockets_ds->fd_udp);
-	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
-	close(sockets_ds->fd_tcp);
-	free(sockets_ds);
-}
-
 void handle_signal_action(int sig_number) {
   if (sig_number == SIGINT) {
     printf("\nClosing server\n");
-    cleanup_server();
     exit(EXIT_SUCCESS);
   }
 }
@@ -103,13 +85,12 @@ int main(int argc, char **argv) {
 	
 	signal(SIGINT, &handle_signal_action);
   	
-  	sockets_ds = (socket_ds*) malloc(sizeof(socket_ds));
+  	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds));
   	
 	// initialize data storage
 	init_data(args);
 	
-	file = fopen(args.word_file, "r");
-	init_player_info(args, file);
+	init_player_info(args, fopen(args.word_file, "r"));
 	
 	// create a child process
 	pid = fork();
@@ -129,8 +110,6 @@ int main(int argc, char **argv) {
 	} else {
 		// on failure - 1 is returned
 		perror(ERROR_FORK);
-
-		free(sockets_ds);
 
 		exit(EXIT_FAILURE);
 	}

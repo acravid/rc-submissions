@@ -394,7 +394,6 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 		printf(NO_GAME_ERROR);
 		return ERROR;
 	}
-	
 	//prepare request
 	sprintf(request, "QUT %s\n", game_stats->player_id);
 	
@@ -445,10 +444,14 @@ int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_st
 		return ERROR;
 	}
 	
-	game_stats->running = NO;
-	
-	if (strcmp(strtok(NULL, "\n"), "ERR") == EQUAL) {
+	char status[4];
+	strcpy(status, strtok(NULL, "\n"));
+	if (strcmp(status, "ERR") == EQUAL) {
 		printf(QUIT_REQUEST_ERROR);
+		return ERROR;
+	}
+	if (strcmp(status, "NOK") == EQUAL) {
+		printf(QUIT_REQUEST_NOK);
 		return ERROR;
 	}
 	

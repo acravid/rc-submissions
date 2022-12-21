@@ -23,6 +23,8 @@ void init_player_info(input_args args, FILE* file) {
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
 		strcpy(games[i].word, "");
+		strcpy(games[i].last_request, "");
+		strcpy(games[i].last_response, "");
 		strcpy(games[i].played_letters, "");
 	}
 }
@@ -114,10 +116,19 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 
 		//starts the game
 		else {
-			start_game(playerid);
-			sprintf(reply,"%s %s %d %d\n", START_REPLY_CODE, OK_REPLY_CODE, 
+			//checks if last response was lost
+			if (strcmp(buffer, games[atoi(playerid) - PLAYERID_MIN].last_request) == EQUAL) {
+				strcpy(reply, games[atoi(playerid) - PLAYERID_MIN].last_response);
+				printf("was the same\n");
+			}
+			else {
+				start_game(playerid);
+				sprintf(reply,"%s %s %d %d\n", START_REPLY_CODE, OK_REPLY_CODE, 
 					games[atoi(playerid) - PLAYERID_MIN].n_letters,
 					games[atoi(playerid) - PLAYERID_MIN].n_errors);
+				strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, buffer);
+				strcpy(games[atoi(playerid) - PLAYERID_MIN].last_response, reply);
+			}
 		}
 	}
 }
@@ -200,24 +211,29 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 		//check if letter is valid
 		else if (!valid_letter(letter[0]))
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
-
-		//check if letter is duplicate
-		else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, tolower(letter[0])) != NULL)
-			sprintf(reply,"%s %s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE, trial);
 	
 		//check if player has an ongoing game
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
 			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
-		//check if trial is valid
-		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial)
-			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
-
 		//make play
 		else {
-	   		char res[MAX_PLAY_REPLY_SIZE];	
-			play(atoi(playerid), tolower(letter[0]), res);
-			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
+			//checks if last response was lost
+			if (strcmp(buffer, games[atoi(playerid) - PLAYERID_MIN].last_request) == EQUAL) 
+				strcpy(reply, games[atoi(playerid) - PLAYERID_MIN].last_response);
+			//check if letter is duplicate
+			else if (strchr(games[atoi(playerid) - PLAYERID_MIN].played_letters, tolower(letter[0])) != NULL)
+				sprintf(reply,"%s %s %s\n", PLAY_REPLY_CODE, DUP_REPLY_CODE, trial);
+			//check if trial is valid
+			else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial)
+				sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
+			else {
+	   			char res[MAX_PLAY_REPLY_SIZE];	
+				play(atoi(playerid), tolower(letter[0]), res);
+				sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
+			}
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, buffer);
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_response, reply);
 		}
 	}
 }
@@ -278,28 +294,32 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 			printf("c\n");
 		}
-
+		
 		//check if player has an ongoing game
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1){
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
 			printf("d\n");
 		}
-
-		//check if trial is valid
-		else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial) {
-			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
-			printf("e\n");
-		}
-
-		//make play
+		//check if word is valid and makes it lower case
+		else if (!word_tolower(word))
+	   		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		//make guess
 		else {
-	   		char res[MAX_GUESS_REPLY_SIZE];
-	   		if (!word_tolower(word))
-	   			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+	   		//checks if last response was lost
+			if (strcmp(buffer, games[atoi(playerid) - PLAYERID_MIN].last_request) == EQUAL) 
+				strcpy(reply, games[atoi(playerid) - PLAYERID_MIN].last_response);
+			//check if trial is valid
+			else if (atoi(trial) != games[atoi(playerid) - PLAYERID_MIN].trial) {
+				sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, INV_REPLY_CODE);
+				printf("e\n");
+			}
 	   		else {
+	   			char res[MAX_GUESS_REPLY_SIZE];
 				guess(atoi(playerid), word, res);
 				sprintf(reply,"%s %s %s\n", GUESS_REPLY_CODE, res, trial);
 			}
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, buffer);
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_response, reply);
 		}
 	}	
 }
@@ -321,10 +341,15 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		//check if player is valid
 		else if (!valid_playerid(playerid))
 			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		//check if player has a game running
+		else if (games[atoi(playerid) - PLAYERID_MIN].trial == 0)
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, NOK_REPLY_CODE);
 		//ends the game
 		else {
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
+			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_response, "");
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
 		}
 	}
@@ -382,8 +407,12 @@ void udp_request_handler(socket_ds* sockets_ds) {
   		printf("aqui\n");
         // turn request to string 
         buffer[ret_udp_request] = '\0';
+        
+        if (verbose)
+			printf("IP: %s Port: %u Sent: %s", inet_ntoa(addr.sin_addr), addr.sin_port, buffer);
+			
         udp_select_requests_handler(buffer, ret_udp_request, reply);
-      
+      	
 
         // send reply back to client
         ret_udp_response = ERROR;
@@ -400,6 +429,9 @@ void udp_request_handler(socket_ds* sockets_ds) {
 				timeout_count += 1;
 			}
 		}
+		
+		if (verbose)
+			printf("Sent to: %s\n", inet_ntoa(addr.sin_addr));
 
     }
 
