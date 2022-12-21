@@ -83,6 +83,7 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//prepare request
 	get_word(player_id, MAX_PLAYERID_SIZE);
+	game_stats->running = YES;
 	strcpy(game_stats->player_id, player_id);
 	sprintf(request, "SNG %s\n", player_id);
 
@@ -127,25 +128,43 @@ int process_start_response(char* response, ssize_t ret_recv_udp_response, game_s
 		response[START_RESPONSE_SIZE - 1] = '\0';
 	}
 	
-	//positive response
-	if(strcmp(strtok(response, " "), "RSG") == EQUAL && strcmp(strtok(NULL, " "), "OK") == EQUAL) {
+	//process response
+	char* code = strtok(response, " ");
+	//error
+	if (strcmp(code, "RSG") != EQUAL) {
+		if (strcmp(code, "ERR\n") == EQUAL) {
+			game_stats->last_play = ERR;
+			printf(PLAY_REQUEST_ERROR);
+			return ERROR;
+		}
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
+	}
+	
+	char* status_code = strtok(NULL, " ");
+
+	if(strcmp(status_code, "OK") == EQUAL) {
 		game_stats->n_letters = atoi(strtok(NULL, " "));
 		game_stats->n_errors = atoi(strtok(NULL, " "));
 		game_stats->running = YES;
 		game_stats->trial = 1;
 		game_stats->word = (char*) malloc(sizeof(char) * game_stats->n_letters);
-		for (int i = 0; i <= game_stats->n_letters - 1; i++) {
+		for (int i = 0; i <= game_stats->n_letters - 1; i++)
 			game_stats->word[i] = '_';
-		}
+		return SUCCESS;
+	}
+	else if (strcmp(status_code, "NOK\n") == EQUAL) {
+		printf(START_REQUEST_NOK);
+		return ERROR;
 	}
 	//error
-	else {
-		game_stats->running = MAYBE;
+	else if (strcmp(status_code, "ERR\n") == EQUAL) {
 		printf(START_REQUEST_ERROR);
 		return ERROR;
 	}
 	
-	return SUCCESS;
+	printf(SERVER_ERROR);
+	exit(EXIT_FAILURE);
 }
 
 
@@ -220,11 +239,16 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 	}
 
 	//process response
+	char* code = strtok(response, " ");
 	//error
-	if(strcmp(strtok(response, " "), "RLG") != EQUAL) {
-		game_stats->last_play = ERR;
-		printf(PLAY_REQUEST_ERROR);
-		return ERROR;
+	if (strcmp(code, "RLG") != EQUAL) {
+		if (strcmp(code, "ERR\n") == EQUAL) {
+			game_stats->last_play = ERR;
+			printf(PLAY_REQUEST_ERROR);
+			return ERROR;
+		}
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 	
 	char* status_code = strtok(NULL, " ");
@@ -236,6 +260,7 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 			game_stats->word[atoi(strtok(NULL, " ")) - 1] = game_stats->last_letter;
 		}
 		game_stats->trial += 1;
+		return SUCCESS;
 	}
 	//won the game
 	else if(strcmp(status_code, "WIN") == EQUAL) {
@@ -245,19 +270,23 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 				game_stats->word[i] = game_stats->last_letter;
 			}
 		}
+		return SUCCESS;
 	}
 	//duplicate play
 	else if(strcmp(status_code, "DUP") == EQUAL) {
 		game_stats->last_play = DUP;
+		return SUCCESS;
 	}
 	//incorrect play
 	else if(strcmp(status_code, "NOK") == EQUAL) {
 		game_stats->trial += 1;
 		game_stats->last_play = NOK;
+		return SUCCESS;
 	}
 	//lost the game
 	else if(strcmp(status_code, "OVR") == EQUAL) {
 		game_stats->last_play = OVR;
+		return SUCCESS;
 	}
 	//invalid trial number
 	else if(strcmp(status_code, "INV") == EQUAL) {
@@ -272,7 +301,8 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 		return ERROR;
 	}
 	
-	return SUCCESS;
+	printf(SERVER_ERROR);
+	exit(EXIT_FAILURE);
 }
 
 
@@ -337,12 +367,16 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	}
 	
 	//process response
+	char* code = strtok(response, " ");
 	//error
-	if(strcmp(strtok(response, " "), "RWG") != EQUAL) {
-		game_stats->last_play = ERR;
-		// TO DO: mensagem de erro
-		printf(GUESS_REQUEST_ERROR);
-		return ERROR;
+	if (strcmp(code, "RWG") != EQUAL) {
+		if (strcmp(code, "ERR\n") == EQUAL) {
+			game_stats->last_play = ERR;
+			printf(PLAY_REQUEST_ERROR);
+			return ERROR;
+		}
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 	
 	char* status_code = strtok(NULL, " ");
@@ -350,15 +384,18 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 	//correct guess
 	if(strcmp(status_code, "WIN") == EQUAL) {
 		game_stats->last_play = WIN;
+		return SUCCESS;
 	}
 	//incorrect guess
 	else if(strcmp(status_code, "NOK") == EQUAL) {
 		game_stats->trial += 1;
 		game_stats->last_play = NOK;
+		return SUCCESS;
 	}
 	//lost the game
 	else if(strcmp(status_code, "OVR") == EQUAL) {
 		game_stats->last_play = OVR;
+		return SUCCESS;
 	}
 	//invalid trial number
 	else if(strcmp(status_code, "INV") == EQUAL) {
@@ -373,7 +410,8 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 		return ERROR;
 	}
 	
-	return SUCCESS;
+	printf(SERVER_ERROR);
+	exit(EXIT_FAILURE);
 }
 
 
@@ -439,9 +477,16 @@ int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_st
 	}
 	
 	//process response
-	if (strcmp(strtok(response, " "), "RQT") != EQUAL) {
-		printf(QUIT_REQUEST_ERROR);
-		return ERROR;
+	char* code = strtok(response, " ");
+	//error
+	if (strcmp(code, "RQT") != EQUAL) {
+		if (strcmp(code, "ERR\n") == EQUAL) {
+			game_stats->last_play = ERR;
+			printf(PLAY_REQUEST_ERROR);
+			return ERROR;
+		}
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 	
 	char status[4];
@@ -454,8 +499,11 @@ int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_st
 		printf(QUIT_REQUEST_NOK);
 		return ERROR;
 	}
+	if (strcmp(status, "OK") == EQUAL) 
+		return SUCCESS;
 	
-	return SUCCESS;
+	printf(SERVER_ERROR);
+	exit(EXIT_FAILURE);
 }
 
 
@@ -561,8 +609,13 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 	//turn code into a string
 	code[3] = '\0';
 	if(strcmp(code, "RSB") != EQUAL) {
-		printf(ERROR_RECV_TCP);
-		return ERROR;
+		if (strcmp(code, "ERR") == EQUAL) {
+			game_stats->last_play = ERR;
+			printf(ERROR_RECV_TCP);
+			return ERROR;
+		}
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 
 	int res = process_scoreboard_response(sockets_ds, game_stats);
@@ -609,7 +662,12 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 		printf(EMPTY_SCOREBOARD_ERROR);
 		return ERROR;
 	}
-
+	
+	if (strcmp(status, "OK") != EQUAL) {
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
+	}
+	
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));
 	
 	//read filedata
@@ -703,6 +761,10 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	//turn code into a string
 	code[3] = '\0';
 	if (strcmp(code, "RHL") != EQUAL) {
+		if (strcmp(code, "ERR") != EQUAL) {
+			printf(SERVER_ERROR);
+			exit(EXIT_FAILURE);
+		}
 		printf(ERROR_RECV_TCP);
 		return ERROR;
 	}
@@ -750,6 +812,11 @@ int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
 	if (strcmp(status, "NOK") == EQUAL) {
 		printf(NO_HINT_ERROR);
 		return ERROR;
+	}
+	
+	if (strcmp(status, "OK") != EQUAL) {
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 	
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));
@@ -840,8 +907,11 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 	//turn code into a string
 	code[3] = '\0';
 	if (strcmp(code, "RST") != EQUAL) {
-		printf(ERROR_RECV_TCP);
-		return ERROR;
+		if (strcmp(code, "ERR") == EQUAL)
+			printf(ERROR_RECV_TCP);
+			return ERROR;
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 
 	int res = process_state_response(sockets_ds, game_stats);
@@ -886,6 +956,11 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	if (strcmp(game_stats->state_status, "NOK") == EQUAL) {
 		printf(NO_SERVER_GAME_ERROR);
 		return ERROR;
+	}
+	
+	if (strcmp(game_stats->state_status, "ACT") != EQUAL && strcmp(game_stats->state_status, "FIN") != EQUAL) {
+		printf(SERVER_ERROR);
+		exit(EXIT_FAILURE);
 	}
 	
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));

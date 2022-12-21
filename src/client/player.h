@@ -36,12 +36,13 @@
 #define DEFAULT_GSPORT "58091"
 
 /*Pathnames: */
-#define SCOREBOARD_PATHNAME "./"
-#define SCOREBOARD_PATHNAME_SIZE 2
-#define HINT_PATHNAME "./"
-#define HINT_PATHNAME_SIZE 2
-#define STATE_PATHNAME "./"
-#define STATE_PATHNAME_SIZE 2
+#define SCOREBOARD_PATHNAME "./client/received_files/"
+#define SCOREBOARD_PATHNAME_SIZE 25
+#define HINT_PATHNAME "./client/received_files/"
+#define HINT_PATHNAME_SIZE 25
+#define STATE_PATHNAME "./client/received_files/"
+#define STATE_PATHNAME_SIZE 25
+#define RECEIVED_FILES_DIR "client/received_files"
 
 /*Messages: */
 #define USAGE_INFO  "\n"\
@@ -54,8 +55,10 @@
 					"\n"\
 					"GSPORT is the well-known port (TCP and UDP) where the GS accepts requests.\n"\
 					"If omitted, it assumes the value 5800+GN, where GN is the group number\n"
-					
+
 #define QUIT_MESSAGE "Game quitted.\n"
+
+#define ERROR_MKDIR_PLAYER "mkdir() an error has occurred, the directory was not created\n"
 
 /*Others: */
 #define PROGRAM_IS_RUNNING 1

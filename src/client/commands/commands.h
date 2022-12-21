@@ -80,7 +80,8 @@
 #define SAVE_FILE_ERROR "Error. Couldn't save file.\n"
 
 /*Server error messages: */
-#define START_REQUEST_ERROR "Error. Player ID is invalid or has a game already running on the server.\n"
+#define START_REQUEST_ERROR "Error. Player ID is invalid.\n"
+#define START_REQUEST_NOK "The player has a game already running on the server.\n"
 #define PLAY_REQUEST_ERROR  "Error. Server wasn't able to fulfill the play request.\n"
 #define INVALID_TRIAL_ERROR "Error. Invalid trial number.\n"
 #define GUESS_REQUEST_ERROR  "Error. Player ID is invalid or there is no game running on the server.\n"
@@ -90,6 +91,7 @@
 #define NO_HINT_ERROR "The server has no hints for you.\n"
 #define NO_SERVER_GAME_ERROR "Error. Invalid player ID or no games (active or finished) for that player in the server.\n"
 #define QUIT_REQUEST_NOK "Error. Can't quit because the server doesn't have a game active for that player.\n"
+#define SERVER_ERROR "Error. Server is not following the protocol. Disconnecting."
 
 
 /*Others: */

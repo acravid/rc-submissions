@@ -85,7 +85,7 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 	printf("a\n");
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
 		printf("b\n");
 		//read player id
@@ -96,12 +96,12 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[len - 1] != '\n') {
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("c\n");
 		}
 		//check if player is valid
 		else if (!valid_playerid(playerid)) {
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", START_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("d\n");
 		}
 		//check if player has an ongoing game
@@ -197,7 +197,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	size_t request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5;
 	if (request_size != len && request_size + 1 != len) //trial may have 2 digits
-		sprintf(reply, "%s\n", ERROR_REPLY_CODE);
+		sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -207,24 +207,24 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 
 		//check if parsing was successful
 		if (playerid == NULL || letter == NULL || trial == NULL) 
-			sprintf(reply, "%s\n", ERROR_REPLY_CODE);
+			sprintf(reply, "%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check for spaces in the right places
 		else if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ' || 
 			buffer[CODE_SIZE + 1 + PLAYERID_SIZE + 1 + 1] != ' ') 
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if the message ends with \n
 		else if (buffer[len - 1] != '\n')
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);	
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);	
 
 		//check if letter is valid
 		else if (!valid_letter(letter[0]))
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, ERROR_REPLY_CODE);
 	
 		//check if player has an ongoing game
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1)
@@ -292,7 +292,7 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	size_t request_size = CODE_SIZE + 1 + PLAYERID_SIZE + 5; //not knowing the word size 1 is min
 	if (request_size > len && request_size + 1 > len) //trial may have 2 digits
-		sprintf(reply, "%s\n", ERROR_REPLY_CODE);
+		sprintf(reply, "%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 	else {
 		printf("aqui\n");
 		//read player id, word and trial
@@ -308,28 +308,28 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 
 		//check for spaces in the right places
 		else if(buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != ' ') {
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("a\n");
 		}
 		//check if the message ends with \n
 		else if(buffer[len - 1] != '\n')  {
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("b\n");
 		}
 		//check if player is valid
 		else if(!valid_playerid(playerid)){
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("c\n");
 		}
 		
 		//check if player has an ongoing game
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1){
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 			printf("d\n");
 		}
 		//check if word is valid and makes it lower case
 		else if (!word_tolower(word))
-	   		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+	   		sprintf(reply,"%s %s\n", GUESS_REPLY_CODE, ERROR_REPLY_CODE);
 		//make guess
 		else {
 	   		//checks if last response was lost
@@ -356,7 +356,7 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
 	printf("a\n");
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) {
-		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		printf("b\n");
 	}
 	else {
@@ -364,16 +364,16 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
 		if (sscanf(&buffer[CODE_SIZE], "%s", playerid) == EOF)
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		if (playerid == NULL)
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n')
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, ERROR_REPLY_CODE);
 		//check if player has a game running
 		else if (games[atoi(playerid) - PLAYERID_MIN].trial == 0)
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, NOK_REPLY_CODE);
@@ -582,7 +582,7 @@ void hint(char* hint_name, char* reply) {
 void hint_request_handler(char* buffer, size_t len, char* reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -590,14 +590,10 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
-
-		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1) 
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
@@ -635,7 +631,7 @@ void state(char* state_name, char* reply) {
 void state_request_handler(char* buffer, size_t len, char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -643,11 +639,11 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
 			char state_file_name[MAX_FILENAME];
