@@ -429,9 +429,6 @@ void udp_request_handler(socket_ds* sockets_ds) {
 				timeout_count += 1;
 			}
 		}
-		
-		if (verbose)
-			printf("Sent to: %s\n", inet_ntoa(addr.sin_addr));
 
     }
 
@@ -562,7 +559,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
-			char hint_name[MAX_FILE_NAME];
+			char hint_name[MAX_FILENAME];
 			//TODO: get_hint vai ao ficheiro do playerid buscar o nome do hint file e mete em hint_name
 			//      se esse ficheiro nao existir o player nao tem jogo e por isso hint_name fica a NULL
 			//get_hint(atoi(playerid), hint_name);
@@ -611,7 +608,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
 
 		else {
-			char state_file_name[MAX_FILE_NAME];
+			char state_file_name[MAX_FILENAME];
 			char reply[MAX_STATE_REPLY_SIZE];
 			//TODO get_state(int, char*) mete em char* o file name do state do player
 			// se não existir nem ativo nem no historico mete NULL
@@ -776,8 +773,8 @@ void tcp_setup(socket_ds* sockets_ds, input_args args) {
 		exit(EXIT_FAILURE);
     }
 
-    if(listen(sockets_ds->fd_tcp,MAX_QUEUED_REQUESTS) == ERROR) {
-        fprintf(stderr,ERROR_LISTEN);
+    if(listen(sockets_ds->fd_tcp, MAX_QUEUED_REQUESTS) == ERROR) {
+        fprintf(stderr, ERROR_LISTEN);
         exit(EXIT_FAILURE);
     }
 

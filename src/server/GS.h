@@ -1,9 +1,7 @@
 /*
- * File: game_server.h
+ * File: GS.h
  * Authors: Allan Fernandes 97281, João Vítor 99246
- * Description: header for game_server.c
- * 
- * 
+ * Description: header for GS.c
 */
 
 #ifndef GS_H
@@ -11,23 +9,17 @@
 
 #include <stdbool.h> 
 
-typedef struct {
-    char *port;
-    bool verbose_flag;
-    char *word_file;
-} input_args;
+/*---------------MACROS---------------*/
 
-
-//--------------------------------------------------------------
-//                              MACROS
-//--------------------------------------------------------------
-
-#define DEFAULT_GSPORT "58091"
-#define MAX_STRING 65535
-#define EQUAL 0
-#define SUCCESS 0
+/*Maximum values: */
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
+#define MAX_STRING 65535
+
+/*Default settings: */
+#define DEFAULT_GSPORT "58091"
+
+/*Files: */
 #define HINT_FILE_PATH "./server/hints/"
 #define SCOREBOARD_FILE_PATH "./server/"
 #define SCOREBOARD_FILE_NAME "scoreboard.txt"
@@ -35,24 +27,22 @@ typedef struct {
 #define GAME_DATA_DIR "GAME_DATA"
 #define GAMES_DIR "GAME_DATA/GAMES"
 #define SCORES_DIR "GAME_DATA/SCORES"
-#define MAX_FILE_NAME 28
+
+/*Sockets: */
 #define SOCKET_TIMEOUT 1
 #define MAX_TIMEOUTS 2
 
+/*Others: */
+#define EQUAL 0
+#define SUCCESS 0
+
+/*Messages: */
+#define ERROR_MKDIR "mkdir() an error has occurred, the directory was not created\n"
+
+#define ERROR_FORK "fork() an error has occurred, failed to create a child process\n"
 
 
-
-#define ERROR_MKDIR "\n"\
-                    "mkdir() an error has occurred, the directory was not created\n"
-
-#define ERROR_FORK "\n"\
-                    "fork() an error has occurred, failed to create a child process\n"
-
-
-
-// TODO:
-#define USAGE_INFO  "\n"\
-					"Game Server (GS)\n"\
+#define USAGE_INFO  "Game Server (GS)\n"\
 		   			"Invalid arguments to start the server\n"\
 		  			"Usage: ./GS word_file [-p GSport] [ -v ]\n"\
 		  			"\n"\
@@ -75,13 +65,17 @@ typedef struct {
                     "If the –v option is set when invoking the program, it operates in verbose mode, meaning\n"\
                     "that the GS outputs to the screen a short description of the received requests (PLID"\
                     "type of request)\nand the IP and port originating those requests."\
-                    "Each received request should start being processed once it is received" 
-                  
+                    "Each received request should start being processed once it is received"
 
-					
+/*---------------Structs---------------*/
 
+/* @brief:
+    Struct that stores optional command line arguments
+*/
+typedef struct {
+    char *port;
+    bool verbose_flag;
+    char *word_file;
+} input_args;
 
-
-
-
-#endif /* GAME_SERVER_H */
+#endif /* GS_H */
