@@ -55,20 +55,15 @@ void start_game(char *player_id) {
 	char word[MAX_WORD_SIZE];
 	char hint[MAX_HINT_FILE_NAME_LENGHT];
 	char line[MAX_LINE_LENGTH];
-	char file_path[PATH_ONGOING_GAME_LENGTH];
 	char write_info[MAX_LINE_LENGTH];
-    create_game_play_txt(player_id,file_path);
-    
-	printf("-b\n");
+
 	fgets(line,MAX_LINE_LENGTH,word_file);
-	printf("-c\n");
-	// write selected guess word and hint filename to player's ongoing game file
+
 	sscanf(line, "%s %s", word, hint);
 	sprintf(write_info,"%s %s\n",word,hint);
-	printf("-d\n");
-	// write selected guess word and hint filename to player's ongoing game file
-	write_game_play(file_path,write_info,WRITING_MODE);
-	printf("-e\n");
+
+	// write selected word and its hint filename to player's ongoing game file
+	write_game_play_to_file(player_id,write_info,START_CODE);
 	
 	int len = strlen(word);
 	int playerid = atoi(player_id);
@@ -154,15 +149,9 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 
-			// creates the player's directory if it doesn't exist 
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			
-			// TODO:
-			// rename 
-			// move
-			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
 		}
 		else
 			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
@@ -186,14 +175,10 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
-			
-			// creates the player's directory if it doesn't exist 
+
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			// TODO:
-			// rename 
-			// move
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
 			
 		}
 		else {
@@ -267,6 +252,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 	}
 }
 
+
 void guess(char *player_id, char* word, char* res) {
 
 	int playerid = atoi(player_id);
@@ -282,16 +268,9 @@ void guess(char *player_id, char* word, char* res) {
 			sprintf(res, "%s", OVR_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
-			
-			// creates the player's directory if it doesn't exist 
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			
-			// TODO:
-			// rename 
-			// move
-			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
 		}
 		else
 			sprintf(res, "%s", NOK_REPLY_CODE);
@@ -302,18 +281,12 @@ void guess(char *player_id, char* word, char* res) {
 		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 		games[playerid - PLAYERID_MIN].trial = 0;
 
-		// creates the player's directory if it doesn't exist 
+		// NOTE: add comments
 		create_player_game_directory(player_id); 
-		// move player's play file to player's directory 
-		// the player's play file has to be rename 
-			
-		// TODO:
-		// rename 
-		// move
+		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
 			
 	}
 }
-
 
 void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
@@ -407,6 +380,12 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		//ends the game
 		else {
 			printf("aqui nao quero\n");
+			
+			// NOTE: add comments
+			create_player_game_directory(playerid); 
+			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT);	
+				
+			
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
