@@ -13,6 +13,7 @@ FILE* file;
 // close open socket connections
 // free resources
 void cleanup_server() {
+	printf("pls\n");
 	// Exiting
 	fclose(file);
 	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
@@ -100,12 +101,7 @@ int main(int argc, char **argv) {
 	input_args args = parse_args(argc,argv);
 	
 	
-	struct sigaction sa;
-	sa.sa_handler = handle_signal_action;
-  	if (sigaction(SIGINT, &sa, 0) != 0) {
-    	perror("sigaction()");
-    	exit(EXIT_FAILURE);
-  	}
+	signal(SIGINT, &handle_signal_action);
   	
   	sockets_ds = (socket_ds*) malloc(sizeof(socket_ds));
   	

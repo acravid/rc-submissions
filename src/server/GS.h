@@ -28,8 +28,8 @@ typedef struct {
 #define SUCCESS 0
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
-#define HINT_FILE_PATH "./hints/"
-#define SCOREBOARD_FILE_PATH "./"
+#define HINT_FILE_PATH "./server/hints/"
+#define SCOREBOARD_FILE_PATH "./server/"
 #define SCOREBOARD_FILE_NAME "scoreboard.txt"
 #define STATE_FILE_PATH "./"
 #define GAME_DATA_DIR "GAME_DATA"

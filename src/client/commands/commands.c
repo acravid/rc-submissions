@@ -586,11 +586,11 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	while (n == ERROR || (count < 3 && file_info[r_buffer - 1] != '\n')) {
 		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
 		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
-			printf(ERROR_SEND_TCP);
+			printf(ERROR_RECV_TCP);
 			return ERROR;
 		}
 		else if (n == ERROR) {
-			printf(TIMEOUT_SEND_TCP);
+			printf(TIMEOUT_RECV_TCP);
 			timeout_count += 1;
 		}
 		else {
@@ -616,11 +616,11 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	while (n == ERROR || r_buffer < (size_t) filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
 		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
-			printf(ERROR_SEND_TCP);
+			printf(ERROR_RECV_TCP);
 			return ERROR;
 		}
 		else if (n == ERROR) {
-			printf(TIMEOUT_SEND_TCP);
+			printf(TIMEOUT_RECV_TCP);
 			timeout_count += 1;
 		}
 		else 

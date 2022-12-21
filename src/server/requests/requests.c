@@ -359,7 +359,7 @@ void udp_request_handler(socket_ds* sockets_ds) {
     // we can now process requests from clients
     char buffer[CLIENT_UDP_MAX_REQUEST_SIZE];
     char reply[MAX_PLAY_REPLY_SIZE];
-    ssize_t ret_udp_request, ret_udp_response;
+    ssize_t ret_udp_response, ret_udp_request;
     int timeout_count;
  
     memset(reply, '\0', sizeof(reply));
@@ -370,24 +370,16 @@ void udp_request_handler(socket_ds* sockets_ds) {
     while(true) {
 
         addrlen = sizeof(addr);
-
+		printf("cima\n");
         // receive client message from socket
-        ret_udp_request = ERROR;
-        timeout_count = 0;
-		while (ret_udp_request == ERROR) {
-			ret_udp_request = recvfrom(sockets_ds->fd_udp, buffer, CLIENT_UDP_MAX_REQUEST_SIZE, AUTO_PROTOCOL, (struct sockaddr*) &addr, &addrlen);
-			if(ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
-				cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            	fprintf(stderr,ERROR_RECV_FROM);
-            	exit(EXIT_FAILURE);
-			}
-			else if (ret_udp_request == ERROR) {
-				printf(TIMEOUT_RECV_UDP);
-				timeout_count += 1;
-			}
-		}
+		ret_udp_request = recvfrom(sockets_ds->fd_udp, buffer, CLIENT_UDP_MAX_REQUEST_SIZE, AUTO_PROTOCOL, (struct sockaddr*) &addr, &addrlen);
+		if(ret_udp_request == ERROR) {
+			cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
+            fprintf(stderr,ERROR_RECV_FROM);
+            exit(EXIT_FAILURE);
+        }
 
-  
+  		printf("aqui\n");
         // turn request to string 
         buffer[ret_udp_request] = '\0';
         udp_select_requests_handler(buffer, ret_udp_request, reply);
@@ -440,12 +432,6 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 		exit(EXIT_FAILURE);
     }
 
-    if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
-        // Failed to get an internet address
-		fprintf(stderr, ERROR_ADDR_UDP);
-		exit(EXIT_FAILURE);
-    }
-
     if((ret = getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr) != SUCCESS)) {
         fprintf(stderr, ERROR_ADDR_UDP);
 		exit(EXIT_FAILURE);
@@ -470,12 +456,14 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 // FIX ME: add macros for SIZE, HINT_REPLY_CODE
 
 void scoreboard(char* reply) {
+	
 	char scoreboard_path_name[strlen(SCOREBOARD_FILE_NAME) + strlen(SCOREBOARD_FILE_PATH)];
 	char data[MAX_FILE_SIZE];
 	int size = 0;
 	sprintf(scoreboard_path_name, "%s%s", SCOREBOARD_FILE_PATH, SCOREBOARD_FILE_NAME);
-	FILE* scoreboard_file = fopen(SCOREBOARD_FILE_NAME, "r");
-	
+	FILE* scoreboard_file = fopen(scoreboard_path_name, "r");
+	if (scoreboard_file == NULL)
+		printf("d\n");
 	for (char c = fgetc(scoreboard_file); c != EOF; c = fgetc(scoreboard_file), size += 1)
 		data[size] = c;
 	
@@ -485,9 +473,11 @@ void scoreboard(char* reply) {
 		sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE_NAME, size, data);
 		
 	fclose(scoreboard_file);
+	printf("c\n");
 }
 
 void scoreboard_request_handler(char* request, size_t len, char* reply) {
+	
 	//check if request is correct
 	if (strcmp("GSB\n", request) != EQUAL)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, ERROR_REPLY_CODE);
@@ -628,7 +618,9 @@ void tcp_request_handler(socket_ds* sockets_ds) {
 
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);;
-    size_t n, w_buffer;
+    ssize_t ret_udp_request, ret_udp_response;
+    size_t w_buffer;
+    int timeout_count;
     char request[CLIENT_TCP_MAX_REQUEST_SIZE];
     char reply[SERVER_TCP_MAX_REPLY_SIZE];
     pid_t pid;
@@ -656,31 +648,48 @@ void tcp_request_handler(socket_ds* sockets_ds) {
                 exit(EXIT_FAILURE);
             }
 			printf("Cria child\n");
-			n = read(newfd, request, HINT_REQUEST_SIZE);
-            if((int) n == ERROR) {
-                fprintf(stderr, ERROR_READ);
-                close(newfd);
-				exit(EXIT_FAILURE);	
-            }
+            
+            ret_udp_request = ERROR;
+            timeout_count = 0;
+            while (ret_udp_request == ERROR) {
+				ret_udp_request = read(newfd, request, CLIENT_TCP_MAX_REQUEST_SIZE);
+				if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+					fprintf(stderr, ERROR_READ);
+                	close(newfd);
+					exit(EXIT_FAILURE);	
+				}
+				else if (ret_udp_request == ERROR) {
+					printf(TIMEOUT_RECV_TCP);
+					timeout_count += 1;
+				}
+			}
             
 			//make request a string
-			request[n] = '\0';
+			request[ret_udp_request] = '\0';
 			printf("Le: %s", request);
             // process request buffer and handle to corresponding functions
-			tcp_select_requests_handler(request, n, reply);
+			tcp_select_requests_handler(request, ret_udp_request, reply);
 			printf("Tem a resposta: %s\n", reply);
 			size_t len = strlen(reply);
+			ret_udp_request = ERROR;
+            timeout_count = 0;
 			w_buffer = 0;
 			//read status filename filesize
-			while (w_buffer != len) {
-				n = write(newfd, reply, len - w_buffer);
-				if ((int) n == ERROR) {
+			while (ret_udp_response == ERROR || w_buffer != len) {
+				ret_udp_response = write(newfd, reply, len - w_buffer);
+				if (ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 					fprintf(stderr, ERROR_WRITE);
                 	close(newfd);
 					exit(EXIT_FAILURE);
 				}
-				w_buffer += n;
+				else if (ret_udp_response == ERROR) {
+					printf(TIMEOUT_SEND_TCP);
+					timeout_count += 1;
+				}
+				else
+					w_buffer += ret_udp_response;
 			}
+			
 			printf("Acaba\n");
 			close(newfd);
 			
