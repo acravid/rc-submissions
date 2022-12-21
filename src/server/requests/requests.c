@@ -612,7 +612,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 	}
 }
 
-void state(char* state_name, char* reply) {
+void state(char* state_name, char* reply, char* playerid) {
 	char state_path_name[strlen(state_name) + strlen(STATE_FILE_PATH)];
 	char data[MAX_FILE_SIZE];
 	int size = 0;
@@ -624,7 +624,7 @@ void state(char* state_name, char* reply) {
 	for (char c = fgetc(state_file); c != EOF; c = fgetc(state_file), size += 1)
 		data[size] = c;
 	
-	sprintf(reply, "%s %d %s", state_name, size, data);
+	sprintf(reply, "STATE_%s.txt %d %s", playerid, size, data);
 	fclose(state_file);
 }
 
@@ -656,7 +656,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 				sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 			else {
 				//open and read file
-				state(state_file_name, reply);
+				state(state_file_name, reply, playerid);
 
 				sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, reply);
 			}
