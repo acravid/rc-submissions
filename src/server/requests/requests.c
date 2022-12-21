@@ -582,7 +582,7 @@ void hint(char* hint_name, char* reply) {
 void hint_request_handler(char* buffer, size_t len, char* reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -590,14 +590,10 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s\n", ERROR_REPLY_CODE);
-
-		//check if player has an ongoing game
-		else if (games[atoi(playerid) - PLAYERID_MIN].trial < 1) 
 			sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
@@ -635,7 +631,7 @@ void state(char* state_name, char* reply) {
 void state_request_handler(char* buffer, size_t len, char *reply) {
 	//check if message sent has the right size
 	if (CODE_SIZE + 1 + PLAYERID_SIZE + 1 != len) 
-		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+		sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 	else {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
@@ -643,11 +639,11 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
-			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 
 		//check if player is valid
 		else if (!valid_playerid(playerid))
-			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, ERROR_REPLY_CODE);
+			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
 			char state_file_name[MAX_FILENAME];
