@@ -598,9 +598,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 
 		else {
 			char hint_name[MAX_FILENAME];
-			//TODO: get_hint vai ao ficheiro do playerid buscar o nome do hint file e mete em hint_name
-			//      se esse ficheiro nao existir o player nao tem jogo e por isso hint_name fica a NULL
-			//get_hint(atoi(playerid), hint_name);
+			get_hint_filename(hint_name,playerid);
 			if (hint == NULL)
 				sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 			else {
