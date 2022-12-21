@@ -154,15 +154,9 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
 
-			// creates the player's directory if it doesn't exist 
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			
-			// TODO:
-			// rename 
-			// move
-			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
 		}
 		else
 			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
@@ -186,14 +180,10 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
-			
-			// creates the player's directory if it doesn't exist 
+
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			// TODO:
-			// rename 
-			// move
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
 			
 		}
 		else {
@@ -267,6 +257,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 	}
 }
 
+
 void guess(char *player_id, char* word, char* res) {
 
 	int playerid = atoi(player_id);
@@ -282,16 +273,9 @@ void guess(char *player_id, char* word, char* res) {
 			sprintf(res, "%s", OVR_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
-			
-			// creates the player's directory if it doesn't exist 
+			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			// move player's play file to player's directory 
-			// the player's play file has to be rename 
-			
-			// TODO:
-			// rename 
-			// move
-			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
 		}
 		else
 			sprintf(res, "%s", NOK_REPLY_CODE);
@@ -302,18 +286,12 @@ void guess(char *player_id, char* word, char* res) {
 		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 		games[playerid - PLAYERID_MIN].trial = 0;
 
-		// creates the player's directory if it doesn't exist 
+		// NOTE: add comments
 		create_player_game_directory(player_id); 
-		// move player's play file to player's directory 
-		// the player's play file has to be rename 
-			
-		// TODO:
-		// rename 
-		// move
+		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
 			
 	}
 }
-
 
 void guess_request_handler(char *buffer,size_t len,char *reply) {
 	//check if message sent has the right size
@@ -407,6 +385,10 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 		//ends the game
 		else {
 			printf("aqui nao quero\n");
+			// NOTE: add comments
+			create_player_game_directory(playerid); 
+			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT);	
+				
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
