@@ -71,7 +71,7 @@ void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 //Sends start request to game server
 int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 
-	char player_id[MAX_STRING];
+	char player_id[MAX_PLAYERID_SIZE];
 	char request[START_REQUEST_SIZE];
 	char response[START_RESPONSE_SIZE];
 	ssize_t ret_udp_request = ERROR;
@@ -82,7 +82,7 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 	addrlen = sizeof(addr);
 	
 	//prepare request
-	get_word(player_id);
+	get_word(player_id, MAX_PLAYERID_SIZE);
 	strcpy(game_stats->player_id, player_id);
 	sprintf(request, "SNG %s\n", player_id);
 
@@ -152,7 +152,7 @@ int process_start_response(char* response, ssize_t ret_recv_udp_response, game_s
 //Sends play request to game server
 int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 
-	char letter[MAX_STRING];
+	char letter[2];
 	char request[PLAY_REQUEST_SIZE];
 	char response[PLAY_RESPONSE_SIZE];
 	ssize_t ret_udp_request = ERROR;
@@ -169,7 +169,7 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	}
 	
 	//prepare request
-	get_word(letter);
+	get_word(letter, 2);
 	game_stats->last_letter = toupper(letter[0]);
 	sprintf(request, "PLG %s %s %d\n", game_stats->player_id, letter, game_stats->trial);
 	
@@ -279,7 +279,7 @@ int process_play_response(char* response, ssize_t ret_recv_udp_response, game_st
 //Sends guess request to game server
 int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 
-	char word[MAX_STRING];
+	char word[MAX_WORD_SIZE];
 	char request[GUESS_REQUEST_SIZE];
 	char response[GUESS_RESPONSE_SIZE];
 	ssize_t ret_udp_request = ERROR;
@@ -290,7 +290,7 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	addrlen = sizeof(addr);
 
 	//prepare request
-	get_word(word);
+	get_word(word, MAX_WORD_SIZE);
 	memset(request,'\0',sizeof(request));
 	game_stats->guess = word;
 	sprintf(request, "PWG %s %s %d\n",game_stats->player_id, word, game_stats->trial);
@@ -380,8 +380,8 @@ int process_guess_response(char* response, ssize_t ret_recv_udp_response, game_s
 //Sends quit request to game server
 int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 
-	char request[START_REQUEST_SIZE];
-	char response[START_RESPONSE_SIZE];
+	char request[QUIT_REQUEST_SIZE];
+	char response[QUIT_RESPONSE_SIZE];
 	ssize_t ret_udp_request = ERROR;
 	ssize_t ret_udp_response = ERROR;
 	int timeout_count = 0;
@@ -399,7 +399,7 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//send request over to the server
 	while (ret_udp_request == ERROR) {
-		ret_udp_request = sendto(sockets_ds->fd_udp, request, START_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		ret_udp_request = sendto(sockets_ds->fd_udp, request, QUIT_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
 		if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_UDP);
 			return ERROR;
@@ -413,7 +413,7 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 	//receive the response from the server
 	timeout_count = 0;
 	while (ret_udp_response == ERROR) {
-		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, START_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, QUIT_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
 		if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_RECV_UDP);
 			return ERROR;
@@ -431,16 +431,16 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 //Process the response from the game server to a quit request
 int process_quit_response(char* response, ssize_t ret_recv_udp_response, game_status* game_stats) {
 	//turn response into str
-	if(ret_recv_udp_response < START_RESPONSE_SIZE) {
+	if(ret_recv_udp_response < QUIT_RESPONSE_SIZE) {
 		response[ret_recv_udp_response] = '\0';
 	}
 	else {
-		response[START_RESPONSE_SIZE - 1] = '\0';
+		response[QUIT_RESPONSE_SIZE - 1] = '\0';
 	}
 	
 	//process response
 	if (strcmp(strtok(response, " "), "RQT") != EQUAL) {
-		printf(ERROR_RECV_UDP);
+		printf(QUIT_REQUEST_ERROR);
 		return ERROR;
 	}
 	

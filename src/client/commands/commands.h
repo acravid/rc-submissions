@@ -25,6 +25,8 @@
 #define STATE_REQUEST_SIZE 11
 #define QUIT_REQUEST_SIZE 11
 #define QUIT_RESPONSE_SIZE 8
+#define MAX_PLAYERID_SIZE 7
+#define MAX_WORD_SIZE 31
 
 /*UDP error messages: */
 #define ERROR_FD_UDP  "\n"\

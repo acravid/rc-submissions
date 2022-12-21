@@ -19,7 +19,7 @@
 
 /*Input: */
 optional_args parse_opt(int, char**);
-void get_word(char*);
+void get_word(char*, int);
 
 /*Output: */
 static void usage();
@@ -115,12 +115,12 @@ optional_args parse_opt(int argc, char **argv) {
 // Reads commands from stdin and calls the apropriate function to handle them
 void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
     // receives the command from stdin 
-    char command[MAX_STRING]; 
+    char command[MAX_WORD_SIZE]; 
 
     // reads commands indefinitely until exit is given
     while(PROGRAM_IS_RUNNING) {
 		//get command
-		get_word(command);
+		get_word(command, MAX_WORD_SIZE);
 		
 		//start command
 		if(strcmp(command, START_COMMAND) == EQUAL || strcmp(command, SHORT_START_COMMAND) == EQUAL) {
@@ -170,16 +170,14 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 
 		}
 		//exit command
-		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
-			send_quit_request(sockets_ds, game_stats);
+		else if (strcmp(command, EXIT_COMMAND) == EQUAL) 
 	    	break; 
-		}
     }
 }
 
 
 //Writes a word from stdin to the variable word
-void get_word(char* word) {
+void get_word(char* word, int max_size) {
 	
 	int i = 0;
 	char c = getchar();
@@ -189,7 +187,7 @@ void get_word(char* word) {
 	}
 	//stops reading when it finds a non-whitespace char
 	for(; c != ' ' && c != '\n' && c != '\t' && c != EOF && i <\
-			(MAX_STRING - 1); c = getchar(), i++) {
+			(max_size - 1); c = getchar(), i++) {
 		word[i] = c;
 	}
 	word[i] = '\0';
