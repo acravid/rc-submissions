@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include "player.h"
 #include "commands/commands.h"
 
@@ -46,6 +48,8 @@ int main(int argc, char **argv) {
 	udp_setup(sockets_ds, opt_args);
 							
 	//game setup
+	if(mkdir(RECEIVED_FILES_DIR, S_IRWXU) == ERROR  && errno != EEXIST) 
+		fprintf(stderr, ERROR_MKDIR_PLAYER, strerror(errno));
 	game_status* game_stats = (game_status*) malloc(sizeof(game_status));
 	game_stats->running = NO;												
 	
