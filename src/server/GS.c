@@ -34,14 +34,20 @@ void init_data(input_args args) {
 	
 	init_player_info(args);
 
-	if(mkdir("GAMES",S_IRWXU) != SUCCESS) {
-		fprintf(stderr,ERROR_MKDIR);
-	}
-	
-	if(mkdir("SCORES",S_IRWXU) != SUCCESS) {
-		fprintf(stderr,ERROR_MKDIR);
+	if(mkdir(GAME_DATA_DIR,S_IRWXU) == ERROR  && errno != EEXIST) {
+		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		
 	}
 
+	if(mkdir(GAMES_DIR,S_IRWXU) == ERROR  && errno != EEXIST) {
+		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		
+	}
+	
+	if(mkdir(SCORES_DIR,S_IRWXU) == ERROR  && errno != EEXIST) {
+		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		
+	}
 }
 
 

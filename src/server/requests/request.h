@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> 
 #include <netdb.h> 
+#include <errno.h>
 #include "../GS.h"
 
 #define MAX_WORD_SIZE 31
