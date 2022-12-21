@@ -133,7 +133,12 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 	}
 }
 
-void play(int playerid, char letter, char* res) {
+void play(char *player_id,char *letter_buffer,char letter, char* res) {
+	
+	int playerid = atoi(player_id);
+
+	// write play to player's file
+	write_game_play_to_file(player_id,letter_buffer,PLAY_CODE);
 
 	games[playerid - PLAYERID_MIN].trial += 1;
 	printf("word: %s \nletter: %c\n", games[playerid - PLAYERID_MIN].word, letter);
@@ -147,6 +152,16 @@ void play(int playerid, char letter, char* res) {
 			sprintf(res, "%s %d", OVR_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
+
+			// creates the player's directory if it doesn't exist 
+			create_player_game_directory(player_id); 
+			// move player's play file to player's directory 
+			// the player's play file has to be rename 
+			
+			// TODO:
+			// rename 
+			// move
+			
 		}
 		else
 			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
@@ -165,11 +180,23 @@ void play(int playerid, char letter, char* res) {
 		games[playerid - PLAYERID_MIN].played_letters[len] = letter;
 		games[playerid - PLAYERID_MIN].played_letters[len + 1] = '\0';
 		if (games[playerid - PLAYERID_MIN].n_letters == 0) {
+
+
 			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
+			
+			// creates the player's directory if it doesn't exist 
+			create_player_game_directory(player_id); 
+			// move player's play file to player's directory 
+			// the player's play file has to be rename 
+			// TODO:
+			// rename 
+			// move
+			
 		}
 		else {
+		
 			sprintf(res, "%s %d %d", OK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1, count);
 			for (int i = 0; i < count; i++) {
 				sprintf(&res[strlen(res)], " %d", pos[i]);
@@ -177,6 +204,7 @@ void play(int playerid, char letter, char* res) {
 			printf("%s\n", res);
 		}
 	}
+
 }
 
 void play_request_handler(char *buffer,size_t len,char *reply) {
@@ -229,7 +257,7 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 				sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, INV_REPLY_CODE);
 			else {
 	   			char res[MAX_PLAY_REPLY_SIZE];	
-				play(atoi(playerid), tolower(letter[0]), res);
+				play(playerid,letter,tolower(letter[0]), res);
 				sprintf(reply,"%s %s\n", PLAY_REPLY_CODE, res);
 			}
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, buffer);
@@ -238,7 +266,12 @@ void play_request_handler(char *buffer,size_t len,char *reply) {
 	}
 }
 
-void guess(int playerid, char* word, char* res) {
+void guess(char *player_id, char* word, char* res) {
+
+	int playerid = atoi(player_id);
+
+	// write guess to player's file
+	write_game_play_to_file(player_id,word,GUESS_CODE);
 
 	games[playerid - PLAYERID_MIN].trial += 1;
 
@@ -248,6 +281,16 @@ void guess(int playerid, char* word, char* res) {
 			sprintf(res, "%s", OVR_REPLY_CODE);
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;
+			
+			// creates the player's directory if it doesn't exist 
+			create_player_game_directory(player_id); 
+			// move player's play file to player's directory 
+			// the player's play file has to be rename 
+			
+			// TODO:
+			// rename 
+			// move
+			
 		}
 		else
 			sprintf(res, "%s", NOK_REPLY_CODE);
@@ -257,6 +300,16 @@ void guess(int playerid, char* word, char* res) {
 		sprintf(res, "%s", WIN_REPLY_CODE);
 		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 		games[playerid - PLAYERID_MIN].trial = 0;
+
+		// creates the player's directory if it doesn't exist 
+		create_player_game_directory(player_id); 
+		// move player's play file to player's directory 
+		// the player's play file has to be rename 
+			
+		// TODO:
+		// rename 
+		// move
+			
 	}
 }
 
@@ -315,7 +368,7 @@ void guess_request_handler(char *buffer,size_t len,char *reply) {
 			}
 	   		else {
 	   			char res[MAX_GUESS_REPLY_SIZE];
-				guess(atoi(playerid), word, res);
+				guess(playerid, word, res);
 				sprintf(reply,"%s %s %s\n", GUESS_REPLY_CODE, res, trial);
 			}
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, buffer);

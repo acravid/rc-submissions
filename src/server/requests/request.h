@@ -64,6 +64,9 @@ void debug_request_handler(char*,size_t,char*);
 void udp_setup(socket_ds*, input_args);
 void udp_request_handler(socket_ds*);
 
+void play(char*,char*,char,char*);
+void guess(char*,char*,char*);
+
 //  UDP Error messages
 
 #define ERROR_FD_UDP  "\n"\
