@@ -55,7 +55,7 @@ void create_player_game_directory(char*);
 
 #define PATH_PLAYER_GAME_DIR_LENGTH 22
 #define PATH_ONGOING_GAME_LENGTH 40
-#define MAX_LINE_LENGTH 45
+#define MAX_LINE_LENGTH 59
 #define MAX_HINT_FILE_NAME_LENGHT 21
 #define MAX_FILE_NAME_PATH_ON_GOING_GAME 24
 #define DIR_NAME_LENGTH 20
