@@ -74,32 +74,46 @@ int send_start_request(socket_ds* sockets_ds, game_status* game_stats) {
 	char player_id[MAX_STRING];
 	char request[START_REQUEST_SIZE];
 	char response[START_RESPONSE_SIZE];
-	int ret;
-	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	ssize_t ret_udp_request = ERROR;
+	ssize_t ret_udp_response = ERROR;
+	int timeout_count = 0;
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
-
+	
 	//prepare request
 	get_word(player_id);
 	strcpy(game_stats->player_id, player_id);
 	sprintf(request, "SNG %s\n", player_id);
 
 	//send request over to the server
-	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, START_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
-	if(ret_send_udp_request == ERROR) {
-		printf(ERROR_SEND_UDP);
-		return ERROR;
+	while (ret_udp_request == ERROR) {
+		ret_udp_request = sendto(sockets_ds->fd_udp, request, START_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_request == ERROR) {
+			printf(TIMEOUT_SEND_UDP);
+			timeout_count += 1;
+		}
 	}
 
 	//receive the response from the server
-	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, START_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
-	if(ret_recv_udp_response == ERROR) {
-		printf(ERROR_RECV_UDP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_udp_response == ERROR) {
+		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, START_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+		if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_RECV_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_response == ERROR) {
+			printf(TIMEOUT_RECV_UDP);
+			timeout_count += 1;
+		}
 	}
 	
-	return process_start_response(response, ret_recv_udp_response, game_stats);
+	return process_start_response(response, ret_udp_response, game_stats);
 }
 
 
@@ -141,8 +155,9 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	char letter[MAX_STRING];
 	char request[PLAY_REQUEST_SIZE];
 	char response[PLAY_RESPONSE_SIZE];
-	int ret;
-	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	ssize_t ret_udp_request = ERROR;
+	ssize_t ret_udp_response = ERROR;
+	int timeout_count = 0;
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
@@ -163,21 +178,34 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	if(game_stats->trial > 9)
 		//in case trial has more than 1 digit
 		request_size++;	
-	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, request_size, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
-	if(ret_send_udp_request == ERROR) {
-		printf(ERROR_SEND_UDP);
-		return ERROR;
+	while (ret_udp_request == ERROR) {
+		ret_udp_request = sendto(sockets_ds->fd_udp, request, strlen(request), 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_request == ERROR) {
+			printf(TIMEOUT_SEND_UDP);
+			timeout_count += 1;
+		}
 	}
 
 	//receive the response from the server
-	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, PLAY_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
-	if(ret_recv_udp_response == ERROR) {
-		printf(ERROR_RECV_UDP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_udp_response == ERROR) {
+		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, PLAY_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+		if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_RECV_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_response == ERROR) {
+			printf(TIMEOUT_RECV_UDP);
+			timeout_count += 1;
+		}
 	}
-	response[ret_recv_udp_response] = '\0';
+	response[ret_udp_response] = '\0';
 
-	return process_play_response(response, ret_recv_udp_response, game_stats);
+	return process_play_response(response, ret_udp_response, game_stats);
 }
 
 
@@ -254,8 +282,9 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	char word[MAX_STRING];
 	char request[GUESS_REQUEST_SIZE];
 	char response[GUESS_RESPONSE_SIZE];
-	int ret;
-	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	ssize_t ret_udp_request = ERROR;
+	ssize_t ret_udp_response = ERROR;
+	int timeout_count = 0;
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
@@ -267,20 +296,33 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	sprintf(request, "PWG %s %s %d\n",game_stats->player_id, word, game_stats->trial);
 
 	//send request over to the server
-	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, strlen(request), 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
-	if(ret_send_udp_request == ERROR) {
-		printf(ERROR_SEND_UDP);
-		return ERROR;
+	while (ret_udp_request == ERROR) {
+		ret_udp_request = sendto(sockets_ds->fd_udp, request, strlen(request), 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_request == ERROR) {
+			printf(TIMEOUT_SEND_UDP);
+			timeout_count += 1;
+		}
 	}
 
 	//receive the response from the server
-	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, GUESS_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
-	if(ret_recv_udp_response == ERROR) {
-		printf(ERROR_RECV_UDP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_udp_response == ERROR) {
+		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, GUESS_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+		if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_RECV_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_response == ERROR) {
+			printf(TIMEOUT_RECV_UDP);
+			timeout_count += 1;
+		}
 	}
 	
-	return process_guess_response(response, ret_recv_udp_response, game_stats);
+	return process_guess_response(response, ret_udp_response, game_stats);
 }
 
 
@@ -340,8 +382,9 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 
 	char request[START_REQUEST_SIZE];
 	char response[START_RESPONSE_SIZE];
-	int ret;
-	ssize_t ret_send_udp_request, ret_recv_udp_response;
+	ssize_t ret_udp_request = ERROR;
+	ssize_t ret_udp_response = ERROR;
+	int timeout_count = 0;
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
@@ -354,22 +397,35 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//prepare request
 	sprintf(request, "QUT %s\n", game_stats->player_id);
-
+	
 	//send request over to the server
-	ret_send_udp_request = sendto(sockets_ds->fd_udp, request, QUIT_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
-	if(ret_send_udp_request == ERROR) {
-		printf(ERROR_SEND_UDP);
-		return ERROR;
+	while (ret_udp_request == ERROR) {
+		ret_udp_request = sendto(sockets_ds->fd_udp, request, START_REQUEST_SIZE, 0, sockets_ds->addrinfo_udp_ptr->ai_addr, sockets_ds->addrinfo_udp_ptr->ai_addrlen);
+		if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_request == ERROR) {
+			printf(TIMEOUT_SEND_UDP);
+			timeout_count += 1;
+		}
 	}
 
 	//receive the response from the server
-	ret_recv_udp_response = recvfrom(sockets_ds->fd_udp, response, QUIT_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
-	if(ret_recv_udp_response == ERROR) {
-		printf(ERROR_RECV_UDP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_udp_response == ERROR) {
+		ret_udp_response = recvfrom(sockets_ds->fd_udp, response, START_RESPONSE_SIZE, 0, (struct sockaddr*) &addr, &addrlen);
+		if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_RECV_UDP);
+			return ERROR;
+		}
+		else if (ret_udp_response == ERROR) {
+			printf(TIMEOUT_RECV_UDP);
+			timeout_count += 1;
+		}
 	}
 	
-	return process_quit_response(response, ret_recv_udp_response, game_stats);
+	return process_quit_response(response, ret_udp_response, game_stats);
 }
 
 
@@ -465,23 +521,38 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
 int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 	
 	char code[4];
-	ssize_t n;
+	ssize_t ret_tcp_request = ERROR;
+	ssize_t ret_tcp_response = ERROR;
+	int timeout_count = 0;
 	
 	//opens tcp connection
 	tcp_setup(sockets_ds, opt_args);
 
 	//send request over to the server
-	n = write(sockets_ds->fd_tcp, "GSB\n", SCOREBOARD_REQUEST_SIZE);
-	if(n != SCOREBOARD_REQUEST_SIZE) {
-		printf(ERROR_SEND_TCP);
-		return ERROR;
+	while (ret_tcp_request == ERROR) {
+		ret_tcp_request = write(sockets_ds->fd_tcp, "GSB\n", SCOREBOARD_REQUEST_SIZE);
+		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_request == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 	
 	//receive the response from the server
-	n = read(sockets_ds->fd_tcp, code, 4);
-	if(n != 4) {
-		printf(ERROR_RECV_TCP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_tcp_response == ERROR) {
+		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
+		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_response == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 
 	//turn code into a string
@@ -506,19 +577,26 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	char filename[MAX_FILENAME + SCOREBOARD_PATHNAME_SIZE];
 	int filesize;
 	char status[6];
-	ssize_t n = 0;
+	ssize_t n = ERROR;
+	int timeout_count = 0;
 	size_t r_buffer = 0;
 	
 	//read status filename filesize
 	int count = 0;
-	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+	while (n == ERROR || (count < 3 && file_info[r_buffer - 1] != '\n')) {
 		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
-		if (n == ERROR) {
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
-		if (file_info[r_buffer - 1] == ' ') count++;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else {
+			r_buffer += n;
+			if (file_info[r_buffer - 1] == ' ') count++;
+		}
 	}
 
 	sscanf(file_info, "%s %s %d ", status, filename, &filesize);
@@ -533,13 +611,20 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < (size_t)filesize) {
+	timeout_count = 0;
+	n = ERROR;
+	while (n == ERROR || r_buffer < (size_t) filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
-		if (n == ERROR) {
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else 
+			r_buffer += n;
 	}
 	
 	//open file
@@ -569,7 +654,9 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 	char request[HINT_REQUEST_SIZE];
 	char code[4];
-	ssize_t n;
+	ssize_t ret_tcp_request = ERROR;
+	ssize_t ret_tcp_response = ERROR;
+	int timeout_count = 0;
 	
 	//check if client has a game running
 	if(game_stats->running == NO) {
@@ -584,17 +671,30 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	sprintf(request, "GHL %s\n", game_stats->player_id);
 
 	//send request over to the server
-	n = write(sockets_ds->fd_tcp, request, HINT_REQUEST_SIZE);
-	if (n != HINT_REQUEST_SIZE) {
-		printf(ERROR_SEND_TCP);
-		return ERROR;
+	while (ret_tcp_request == ERROR) {
+		ret_tcp_request = write(sockets_ds->fd_tcp, request, HINT_REQUEST_SIZE);
+		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_request == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 	
 	//receive the response from the server
-	n = read(sockets_ds->fd_tcp, code, 4);
-	if (n != 4) {
-		printf(ERROR_RECV_TCP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_tcp_response == ERROR) {
+		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
+		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_response == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 
 	//turn code into a string
@@ -621,17 +721,24 @@ int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
 	int filesize;
 	ssize_t n = 0;
 	size_t r_buffer = 0;
+	int timeout_count = 0;
 	
 	//read status filename filesize
 	int count = 0;
-	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+	while (n == ERROR || (count < 3 && file_info[r_buffer - 1] != '\n')) {
 		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
-		if (n == ERROR) {
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
-		if (file_info[r_buffer - 1] == ' ') count++;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else {
+			r_buffer += n;
+			if (file_info[r_buffer - 1] == ' ') count++;
+		}
 	}
 
 	sscanf(file_info, "%s %s %d ", status, filename, &filesize);
@@ -647,13 +754,20 @@ int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < (size_t)filesize) {
+	timeout_count = 0;
+	n = ERROR;
+	while (n == ERROR || r_buffer < (size_t) filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
-		if (n == ERROR) {
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else 
+			r_buffer += n;
 	}
 
 	//open file
@@ -683,7 +797,9 @@ int process_hint_response(socket_ds* sockets_ds, game_status* game_stats) {
 int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_status* game_stats) {
 	char request[HINT_REQUEST_SIZE];
 	char code[4];
-	ssize_t n;
+	ssize_t ret_tcp_request = ERROR;
+	ssize_t ret_tcp_response = ERROR;
+	int timeout_count = 0;
 	
 	//opens a tcp connection
 	tcp_setup(sockets_ds, opt_args);
@@ -692,17 +808,30 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 	sprintf(request, "STA %s\n", game_stats->player_id);
 
 	//send request over to the server
-	n = write(sockets_ds->fd_tcp, request, STATE_REQUEST_SIZE);
-	if (n != STATE_REQUEST_SIZE) {
-		printf(ERROR_SEND_TCP);
-		return ERROR;
+	while (ret_tcp_request == ERROR) {
+		ret_tcp_request = write(sockets_ds->fd_tcp, request, STATE_REQUEST_SIZE);
+		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_request == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 	
 	//receive the response from the server
-	n = read(sockets_ds->fd_tcp, code, 4);
-	if (n != 4) {
-		printf(ERROR_RECV_TCP);
-		return ERROR;
+	timeout_count = 0;
+	while (ret_tcp_response == ERROR) {
+		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
+		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
+			return ERROR;
+		}
+		else if (ret_tcp_response == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
 	}
 
 	//turn code into a string
@@ -727,18 +856,25 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	char filename[MAX_FILENAME + STATE_PATHNAME_SIZE];
 	int filesize;
 	ssize_t n = 0;
+	int timeout_count = 0;
 	size_t r_buffer = 0;
 	
 	//read status filename filesize
 	int count = 0;
-	while (n == 0 || (count < 3 && file_info[r_buffer - 1] != '\n')) {
+	while (n == ERROR || (count < 3 && file_info[r_buffer - 1] != '\n')) {
 		n = read(sockets_ds->fd_tcp, file_info + r_buffer, 1);
-		if (n == ERROR) {
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
-		if (file_info[r_buffer - 1] == ' ') count++;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else {
+			r_buffer += n;
+			if (file_info[r_buffer - 1] == ' ') count++;
+		}
 	}
 
 	sscanf(file_info, "%s %s %d ", game_stats->state_status, filename, &filesize);
@@ -753,13 +889,20 @@ int process_state_response(socket_ds* sockets_ds, game_status* game_stats) {
 	
 	//read filedata
 	r_buffer = 0;
-	while (r_buffer < (size_t) filesize) {
+	timeout_count = 0;
+	n = ERROR;
+	while (n == ERROR || r_buffer < (size_t) filesize) {
 		n = read(sockets_ds->fd_tcp, filedata + r_buffer, filesize - r_buffer);
-		if (n == ERROR) {
-			printf(ERROR_RECV_TCP);
+		if (n == ERROR && timeout_count == MAX_TIMEOUTS) {
+			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
-		r_buffer += n;
+		else if (n == ERROR) {
+			printf(TIMEOUT_SEND_TCP);
+			timeout_count += 1;
+		}
+		else 
+			r_buffer += n;
 	}
 	
 	//open file

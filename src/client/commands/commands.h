@@ -45,6 +45,9 @@
 #define ERROR_RECV_UDP "\n"\
 					   "UDP: An error has occurred while trying to receive data over SOCK_GRAM\n"
 
+#define TIMEOUT_SEND_UDP "Error sending udp request. Trying again.\n"
+#define TIMEOUT_RECV_UDP "Error receiving udp response. Trying again.\n"
+
 /*TCP error messages: */
 #define ERROR_FD_TCP  "\n"\
 					 "An error has occurred\n"\
@@ -65,6 +68,9 @@
 
 #define ERROR_RECV_TCP "\n"\
 						"TCP: An error has occurred while trying to receive data over SOCK_STREAM\n"\
+						
+#define TIMEOUT_SEND_TCP "Error sending tcp request. Trying again.\n"
+#define TIMEOUT_RECV_TCP "Error receiving tcp response. Trying again.\n"
 
 /*Client error messages: */
 #define NO_GAME_ERROR "No game running.\n"

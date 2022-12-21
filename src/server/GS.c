@@ -7,12 +7,14 @@
 #include "requests/request.h"
 
 socket_ds* sockets_ds;
+FILE* file;
 
 // clean up server state, that is to say:
 // close open socket connections
 // free resources
 void cleanup_server() {
 	// Exiting
+	fclose(file);
 	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
 	close(sockets_ds->fd_udp);
 	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
@@ -31,8 +33,6 @@ void handle_signal_action(int sig_number) {
 // create directories that stores game related
 // information GAMES and SCORES
 void init_data(input_args args) {
-	
-	init_player_info(args);
 
 	if(mkdir("GAMES",S_IRWXU) != SUCCESS) {
 		fprintf(stderr,ERROR_MKDIR);
@@ -105,6 +105,10 @@ int main(int argc, char **argv) {
   	
 	// initialize data storage
 	init_data(args);
+	
+	file = fopen(args.word_file, "r");
+	init_player_info(args, file);
+	
 	// create a child process
 	pid = fork();
 	// 0 is returned in the child

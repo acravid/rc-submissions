@@ -15,6 +15,7 @@
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
 #define SOCKET_TIMEOUT 1
+#define MAX_TIMEOUTS 2
 
 /*Commands: */
 #define START_COMMAND "start"

@@ -13,9 +13,9 @@ FILE* word_file;
 //--------------------------------------------------------------
 //                  UDP Module                                  
 //--------------------------------------------------------------
-void init_player_info(input_args args) {
+void init_player_info(input_args args, FILE* file) {
 	verbose = args.verbose_flag;
-	word_file = fopen(args.word_file, "r");
+	word_file = file;
 	
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
@@ -343,38 +343,55 @@ void udp_request_handler(socket_ds* sockets_ds) {
     // we can now process requests from clients
     char buffer[CLIENT_UDP_MAX_REQUEST_SIZE];
     char reply[MAX_PLAY_REPLY_SIZE];
+    ssize_t ret_udp_request, ret_udp_response;
+    int timeout_count;
  
     memset(reply, '\0', sizeof(reply));
     
     struct sockaddr_in addr;
     socklen_t addrlen;
-    ssize_t n, nread;
 
     while(true) {
 
         addrlen = sizeof(addr);
 
         // receive client message from socket
-        nread = recvfrom(sockets_ds->fd_udp,buffer,CLIENT_UDP_MAX_REQUEST_SIZE,AUTO_PROTOCOL,(struct sockaddr*)&addr, &addrlen);
-        if(nread == ERROR) {
-            cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            fprintf(stderr,ERROR_RECV_FROM);
-            exit(EXIT_FAILURE);
-        }
+        ret_udp_request = ERROR;
+        timeout_count = 0;
+		while (ret_udp_request == ERROR) {
+			ret_udp_request = recvfrom(sockets_ds->fd_udp, buffer, CLIENT_UDP_MAX_REQUEST_SIZE, AUTO_PROTOCOL, (struct sockaddr*) &addr, &addrlen);
+			if(ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+				cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
+            	fprintf(stderr,ERROR_RECV_FROM);
+            	exit(EXIT_FAILURE);
+			}
+			else if (ret_udp_request == ERROR) {
+				printf(TIMEOUT_RECV_UDP);
+				timeout_count += 1;
+			}
+		}
 
   
         // turn request to string 
-        buffer[nread] = '\0';
-        udp_select_requests_handler(buffer, nread, reply);
+        buffer[ret_udp_request] = '\0';
+        udp_select_requests_handler(buffer, ret_udp_request, reply);
       
 
         // send reply back to client
-        n = sendto(sockets_ds->fd_udp, reply, strlen(reply), AUTO_PROTOCOL, (struct sockaddr*)&addr,addrlen);
-        if(n == ERROR) {
-            cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
-            fprintf(stderr,ERROR_SENDO_TO);
-            exit(EXIT_FAILURE);
-        }
+        ret_udp_response = ERROR;
+        timeout_count = 0;
+		while (ret_udp_response == ERROR) {
+			ret_udp_response = sendto(sockets_ds->fd_udp, reply, strlen(reply), AUTO_PROTOCOL, (struct sockaddr*)&addr,addrlen);
+			if(ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+				cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
+            	fprintf(stderr,ERROR_SEND_TO);
+            	exit(EXIT_FAILURE);
+			}
+			else if (ret_udp_response == ERROR) {
+				printf(TIMEOUT_SEND_UDP);
+				timeout_count += 1;
+			}
+		}
 
     }
 
@@ -608,7 +625,7 @@ void tcp_request_handler(socket_ds* sockets_ds) {
 
         if(newfd == ERROR) {
             cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_udp_ptr);
-            fprintf(stderr,ERROR_SENDO_TO);
+            fprintf(stderr,ERROR_SEND_TO);
             exit(EXIT_FAILURE);
         }
         // create a new child process for each new connection

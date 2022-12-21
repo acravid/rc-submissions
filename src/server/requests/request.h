@@ -41,7 +41,7 @@ typedef struct {
 	int trial;
 } player_info;
 
-void init_player_info(input_args);
+void init_player_info(input_args, FILE*);
 
 //--------------------------------------------------------------
 //                  UDP Function Prototypes                                  
@@ -72,6 +72,9 @@ void udp_request_handler(socket_ds*);
 
 // TODO:
 #define ERROR_BIND_UDP "\n"\
+
+#define TIMEOUT_SEND_UDP "Error sending udp request. Trying again.\n"
+#define TIMEOUT_RECV_UDP "Error receiving udp response. Trying again.\n"
 
 //--------------------------------------------------------------
 //                  TCP Function Prototypes                                  
@@ -109,6 +112,9 @@ void tcp_request_handler(socket_ds*);
 
 #define ERROR_SEND_TCP "\n"\
 						"TCP: An error has occurred while trying to send data over SOCK_STREAM\n"\
+						
+#define TIMEOUT_SEND_TCP "Error sending tcp request. Trying again.\n"
+#define TIMEOUT_RECV_TCP "Error receiving tcp response. Trying again.\n"
 
 
 //--------------------------------------------------------------
@@ -180,7 +186,7 @@ void tcp_request_handler(socket_ds*);
 #define ERROR_RECV_FROM "\n"\
 						"recvfrom(): an error has occurred, failed to receive message from socket\n"
 
-#define ERROR_SENDO_TO "\n"\
+#define ERROR_SEND_TO "\n"\
 						"sendto(): an error has occurred, failed to send message on socket\n"
 				
 
