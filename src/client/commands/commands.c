@@ -27,6 +27,7 @@ int process_quit_response(char*, ssize_t, game_status*);
 
 //Sets up a UDP connection using opt_agrs and stores its information in sockets_ds
 void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
+
 	//opens a UDP socket
     sockets_ds->fd_udp = socket(AF_INET, SOCK_DGRAM, AUTO_PROTOCOL);
     if(sockets_ds->fd_udp == ERROR) {
@@ -39,9 +40,26 @@ void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     sockets_ds->addrinfo_udp.ai_family = AF_INET; //IPv4
     sockets_ds->addrinfo_udp.ai_socktype = SOCK_DGRAM;  //UDP socket
     
+    struct timeval timeout;
+    timeout.tv_sec = SOCKET_TIMEOUT;
+    timeout.tv_usec = 0;
+    
+    if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
+		fprintf(stderr, ERROR_ADDR_UDP);
+		exit(EXIT_FAILURE);
+    }
+
+    if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
+		fprintf(stderr, ERROR_ADDR_UDP);
+		exit(EXIT_FAILURE);
+    }
+    
     //gets server info
-    int ret = getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr);
-    if(ret != SUCCESS) {
+    if(getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr) != SUCCESS) {
         // Failed to get an internet address
 		cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
 		fprintf(stderr, ERROR_ADDR_UDP);
@@ -405,6 +423,24 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     sockets_ds->addrinfo_tcp.ai_family = AF_INET; //IPv4
     sockets_ds->addrinfo_tcp.ai_socktype = SOCK_STREAM;  //TCP socket
     
+    struct timeval timeout;
+    timeout.tv_sec = SOCKET_TIMEOUT;
+    timeout.tv_usec = 0;
+    
+    if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
+		fprintf(stderr, ERROR_ADDR_TCP);
+		exit(EXIT_FAILURE);
+    }
+
+    if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
+		fprintf(stderr, ERROR_ADDR_TCP);
+		exit(EXIT_FAILURE);
+    }
+    
     //gets server info
     int ret = getaddrinfo(opt_args.ip, opt_args.port, &sockets_ds->addrinfo_tcp, &sockets_ds->addrinfo_tcp_ptr);
 	if(ret != SUCCESS) {
@@ -486,13 +522,13 @@ int process_scoreboard_response(socket_ds* sockets_ds, game_status* game_stats) 
 	}
 
 	sscanf(file_info, "%s %s %d ", status, filename, &filesize);
-	
+
 	//check if scoreboard is empty
 	if (strcmp(status, "EMPTY") == EQUAL) {
 		printf(EMPTY_SCOREBOARD_ERROR);
 		return ERROR;
 	}
-	
+
 	char* filedata = (char*) malloc(sizeof(char) * (filesize));
 	
 	//read filedata

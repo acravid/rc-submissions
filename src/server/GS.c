@@ -2,8 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h> // for creating directories
+#include <signal.h>
 #include "GS.h"
 #include "requests/request.h"
+
+socket_ds* sockets_ds;
+
+// clean up server state, that is to say:
+// close open socket connections
+// free resources
+void cleanup_server() {
+	// Exiting
+	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
+	close(sockets_ds->fd_udp);
+	freeaddrinfo(sockets_ds->addrinfo_tcp_ptr);
+	close(sockets_ds->fd_tcp);
+	free(sockets_ds);
+}
+
+void handle_signal_action(int sig_number) {
+  if (sig_number == SIGINT) {
+    printf("\nClosing server\n");
+    cleanup_server();
+    exit(EXIT_SUCCESS);
+  }
+}
 
 // create directories that stores game related
 // information GAMES and SCORES
@@ -64,27 +87,22 @@ input_args parse_args(int argc, char **argv) {
     return args;
 }
 
-// clean up server state, that is to say:
-// close open socket connections
-// free resources
-void cleanup_server(socket_ds * sockets_ds) {
-
-	// Exiting
-	freeaddrinfo(sockets_ds->addrinfo_udp_ptr);
-	close(sockets_ds->fd_udp);
-	free(sockets_ds);
-
-
-}
-
 // Main program entry point
 int main(int argc, char **argv) {
 
 	pid_t pid;
 	input_args args = parse_args(argc,argv);
-	socket_ds* sockets_ds = (socket_ds*) malloc(sizeof(socket_ds)); //socket_setup	
-
-
+	
+	
+	struct sigaction sa;
+	sa.sa_handler = handle_signal_action;
+  	if (sigaction(SIGINT, &sa, 0) != 0) {
+    	perror("sigaction()");
+    	exit(EXIT_FAILURE);
+  	}
+  	
+  	sockets_ds = (socket_ds*) malloc(sizeof(socket_ds));
+  	
 	// initialize data storage
 	init_data(args);
 	// create a child process
@@ -92,12 +110,7 @@ int main(int argc, char **argv) {
 	// 0 is returned in the child
 	if(pid == 0) {
 		// child process responsible for handling udp requests
-
-		// create pointer, useful to pass around functions
-		socket_ds* socket_ds_ptr = sockets_ds;
 		
-		// TODO: 
-		// catch ctrl-c with a signal handler
 		udp_setup(sockets_ds, args);
 		udp_request_handler(sockets_ds);
 
@@ -109,16 +122,11 @@ int main(int argc, char **argv) {
 
 	} else {
 		// on failure - 1 is returned
-		fprintf(stderr,ERROR_FORK);
+		perror(ERROR_FORK);
 
-		// TODO: ?
-		// close open tcp and udp connections -> clean up connections
-		cleanup_server(sockets_ds);
+		free(sockets_ds);
 
 		exit(EXIT_FAILURE);
 	}
-
-	cleanup_server(sockets_ds);
-	exit(EXIT_SUCCESS);
 
 }

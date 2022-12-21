@@ -108,7 +108,7 @@ optional_args parse_opt(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
-
+	
     return opt_args;
 }
 

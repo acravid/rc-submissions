@@ -396,6 +396,22 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
     sockets_ds->addrinfo_udp.ai_family = AF_INET; //IPv4
     sockets_ds->addrinfo_udp.ai_socktype = SOCK_DGRAM;  //UDP socket
     sockets_ds->addrinfo_udp.ai_flags = AI_PASSIVE; //
+    
+    struct timeval timeout;
+    timeout.tv_sec = SOCKET_TIMEOUT;
+    timeout.tv_usec = 0;
+    
+    if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		fprintf(stderr, ERROR_ADDR_UDP);
+		exit(EXIT_FAILURE);
+    }
+
+    if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		fprintf(stderr, ERROR_ADDR_UDP);
+		exit(EXIT_FAILURE);
+    }
 
     if((ret = getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr) != SUCCESS)) {
         fprintf(stderr, ERROR_ADDR_UDP);
@@ -660,7 +676,21 @@ void tcp_setup(socket_ds* sockets_ds, input_args args) {
     sockets_ds->addrinfo_tcp.ai_family = AF_INET; //IPv4
     sockets_ds->addrinfo_tcp.ai_socktype = SOCK_DGRAM;  //TCP socket
     sockets_ds->addrinfo_tcp.ai_flags = AI_PASSIVE; 
+	
+	struct timeval timeout;
+    timeout.tv_sec = SOCKET_TIMEOUT;
+    timeout.tv_usec = 0;
+    
+    if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		exit(EXIT_FAILURE);
+    }
 
+    if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
+        // Failed to get an internet address
+		exit(EXIT_FAILURE);
+    }
+    
     if((ret = getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_tcp, &sockets_ds->addrinfo_tcp_ptr) != SUCCESS)) {
         fprintf(stderr, ERROR_ADDR_TCP);
 		exit(EXIT_FAILURE);

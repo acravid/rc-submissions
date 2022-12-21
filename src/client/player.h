@@ -14,6 +14,7 @@
 #define BUFFER_SIZE 512
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
+#define SOCKET_TIMEOUT 1
 
 /*Commands: */
 #define START_COMMAND "start"
@@ -32,8 +33,8 @@
 #define EXIT_COMMAND "exit"
 
 /*Default settings: */
-#define DEFAULT_GSIP "tejo.ist.utl.pt"
-#define DEFAULT_GSPORT "58011"
+#define DEFAULT_GSIP "kali"
+#define DEFAULT_GSPORT "58091"
 
 /*Pathnames: */
 #define SCOREBOARD_PATHNAME "./"
