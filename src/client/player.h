@@ -35,14 +35,14 @@
 #define DEFAULT_GSIP "unknown448500531966.lan"
 #define DEFAULT_GSPORT "58091"
 
-/*Pathnames: */
-#define SCOREBOARD_PATHNAME "./client/received_files/"
+/*Pathnames: */     
+#define SCOREBOARD_PATHNAME "./client/RECEIVED_FILES/"
 #define SCOREBOARD_PATHNAME_SIZE 25
-#define HINT_PATHNAME "./client/received_files/"
+#define HINT_PATHNAME "./client/RECEIVED_FILES/"
 #define HINT_PATHNAME_SIZE 25
-#define STATE_PATHNAME "./client/received_files/"
+#define STATE_PATHNAME "./client/RECEIVED_FILES/"
 #define STATE_PATHNAME_SIZE 25
-#define RECEIVED_FILES_DIR "client/received_files"
+#define RECEIVED_FILES_DIR "client/RECEIVED_FILES"
 
 /*Messages: */
 #define USAGE_INFO  "\n"\
