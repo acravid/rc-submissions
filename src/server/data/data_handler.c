@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <ctype.h>
+#include <errno.h>
+#include <sys/stat.h>
+
 
 #include "data_handler.h"
 
@@ -23,34 +27,26 @@ void create_game_play_txt(char *plid,char *file_path) {
    
 }
 
- 
-// randomly select a line that contains a word to be guessed and the associated hint file
-// line format: word_to_guess hint_file.jpg
-int select_random_word_hint(char *fname,char *buffer,int buffer_size) {
 
-    int selected_line = rand() % NUMBER_OF_LINES_GUESS_FILE;
-    int current_line = 0;
+void create_player_game_directory(char *plid) {
 
-    FILE* to_guess = fopen(fname,"r");
+    char *dir_path = NULL;
 
-    if(to_guess == NULL) {
-        fprintf(stderr,ERROR_OPEN_FILE,fname);
-    }
-    
-    while(fgets(buffer,buffer_size,to_guess) != NULL ) {
-        current_line++;
-        if(current_line == selected_line) break;
-    }
+    dir_path = (char*)malloc(sizeof(char) *PATH_PLAYER_GAME_DIR_LENGTH);
+    sprintf(dir_path,GAMES_DATA_PLAYER_DIR,plid);
+  
+    if(dir_path == NULL) {
+        fprintf(stderr,ERROR_MALLOC_FILE);
+    }   
 
-    int buffer_length = strlen(buffer);
-    // turn to str
-    if(buffer[buffer_length -1] == '\n') {
-        buffer[buffer_length - 1] = '\0';
-    }
-
-    return false;
+    if(mkdir(dir_path,S_IRWXU) == ERROR  && errno != EEXIST) {
+		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		
+	}
+    free(dir_path);
 
 }
+
 
 
 // write the game play to the player game file
@@ -80,6 +76,37 @@ void write_game_play(char *file_path, char *buffer,char *mode) {
     }
 
 }
+
+void write_game_play_to_file(char * player_id,char *info,char *type) {
+
+    char *file_path = NULL;
+    char *write_info = NULL;
+    
+    file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
+    write_info = (char*)malloc(sizeof(char) * MAX_LINE_LENGTH);
+
+    if(file_path == NULL || write_info == NULL) {
+        fprintf(stderr,ERROR_MALLOC_FILE);
+    }   
+     
+    // find ongoing game paths
+    sprintf(file_path,GAMES_DATA_ONGOING,player_id); 
+
+    if(strcmp(type,PLAY) == SUCESS) {
+        sprintf(write_info,WRITE_PLAY,PLAY_TRIAL_CODE,tolower(info[0])); // write play formatted to buffer
+        write_game_play(file_path,write_info,APPEND_MODE);               // write to player's file
+
+    }
+    else if(strcmp(type,GUESS) == SUCESS) {
+	    sprintf(write_info,WRITE_GUESS,PLAY_GUESS_CODE,info);
+	    write_game_play(file_path,write_info,APPEND_MODE);
+
+    }
+
+    free(file_path);
+    free(write_info);
+}
+
 
 
 

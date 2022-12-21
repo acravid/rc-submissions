@@ -114,11 +114,11 @@ input_args parse_args(int argc, char **argv) {
 void init_data(input_args args) {
 
 	if(mkdir(GAME_DATA_DIR,S_IRWXU) == ERROR  && errno != EEXIST) 
-		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		fprintf(stderr, ERROR_MKDIR_GS, strerror(errno));
 		
 	if(mkdir(GAMES_DIR,S_IRWXU) == ERROR  && errno != EEXIST) 
-		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		fprintf(stderr, ERROR_MKDIR_GS, strerror(errno));
 		
 	if(mkdir(SCORES_DIR,S_IRWXU) == ERROR  && errno != EEXIST) 
-		fprintf(stderr,ERROR_MKDIR,strerror(errno));
+		fprintf(stderr, ERROR_MKDIR_GS, strerror(errno));
 }

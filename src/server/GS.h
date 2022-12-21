@@ -37,7 +37,7 @@
 #define SUCCESS 0
 
 /*Messages: */
-#define ERROR_MKDIR "mkdir() an error has occurred, the directory was not created\n"
+#define ERROR_MKDIR_GS "mkdir() an error has occurred, the directory was not created\n"
 
 #define ERROR_FORK "fork() an error has occurred, failed to create a child process\n"
 
