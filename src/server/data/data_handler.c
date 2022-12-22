@@ -13,15 +13,14 @@
 #include "data_handler.h"
 
 
-// creates a path of the following format GAME_DATA/GAMES/GAMES_plid.txt
-// and stores it to a variable pointed by file_path
+// create ongoing game file
 void create_game_play_txt(char *plid,char *file_path) {
 
     sprintf(file_path,GAMES_DATA_ONGOING,plid);
     
-    FILE *file = fopen(file_path,"a");
+    FILE *file = fopen(file_path,APPEND_STANDARD);
     if(file == NULL) {
-        fprintf(stderr,"fopen(): failed to open");   
+        fprintf(stderr,ERROR_OPEN_FILE);   
     }
 
     fclose(file);
@@ -29,7 +28,8 @@ void create_game_play_txt(char *plid,char *file_path) {
 }
 
 
-// TODO: description
+// create a directory game directory for a given player id
+// stores finished game play files
 void create_player_game_directory(char *plid) {
 
     char *dir_path = NULL;
@@ -50,7 +50,8 @@ void create_player_game_directory(char *plid) {
 }
 
 
-// TODO: description
+// obtain the time a file was last accessed 
+// useful for file renaming and sorting purposes
 void get_last_accessed_data_and_time(char *file_path, char *buffer) {
 
     struct stat time_attrib;
@@ -61,8 +62,112 @@ void get_last_accessed_data_and_time(char *file_path, char *buffer) {
 }
 
 
-// TODO: description
-void rename_and_move_player_file(char* player_id,char termination_status, player_info game) {
+// handle the creation of a player's game play score file 
+// and writing of useful information to this same file
+void create_player_score_file(char *plid,float n_succ,float n_trials,char *date_and_time,char *word) {
+
+    char *score_filename = NULL;
+    char *score_full_path = NULL;
+    char *write_info = NULL;
+    int temp  = 0;
+
+    // calculate game score
+    // NOTE: subtract 1 since our 'trial' is one-based (as defined in start())
+    float score = (n_succ / ((int)n_trials - 1)) * PERCENTAGE;
+
+    score_filename = (char*)malloc(sizeof(char) * SCORE_PARTIAL_PATH_LENGTH);
+    score_full_path = (char*)malloc(sizeof(char) * SCORE_FULL_PATH_LENGTH);
+    write_info = (char*)malloc(sizeof(char) * SCORE_MESSAGE_FULL_LENGTH);
+    memset(write_info,'\0',sizeof(write_info));
+
+    // downcast values back to integer
+    // necessary since we'll later saved them to the score file as int
+    temp = score;
+    int n_succ_fixed = n_succ;
+    int n_trials_without_start = n_trials - 1;
+
+    // write both the filename (already formatted) and its formatted content to two separate buffers
+    if(temp < NOT_DOZEN) {;
+        sprintf(score_filename,SCORE_UNITS_FORMATTING,temp,plid,date_and_time);
+        sprintf(write_info,SCORE_MESSAGE_FORMATTING_UNITS,temp,plid,word,n_succ_fixed,n_trials_without_start);
+    } 
+    else if (temp > NOT_DOZEN && score < NOT_HUNDRED) {
+        sprintf(score_filename,SCORE_DOZENS_FORMATTNG,temp,plid,date_and_time);
+        sprintf(write_info,SCORE_MESSAGE_FORMATTING_DOZENS,temp,plid,word,n_succ_fixed,n_trials_without_start);
+    }
+    else {
+        sprintf(score_filename,SCORE_FORMATTING,temp,plid,date_and_time);
+        sprintf(write_info,SCORE_MESSAGE_FORMATTING,temp,plid,word,n_succ_fixed,n_trials_without_start);
+    }
+
+    
+    // obtain score file full path
+    // full as starting from the defined base directory
+    strcpy(score_full_path,GAMES_SCORE_DIR);
+    strcat(score_full_path,DIR_FORWARD);
+    strcat(score_full_path,score_filename);
+
+    // creates the score file for a succesful finished game
+    // NOTE: This file creation is always different 
+    FILE *score_file = fopen(score_full_path,WRITING_MODE);
+    if(score_file == NULL) {
+        fprintf(stderr,ERROR_OPEN_FILE);   
+    }
+
+
+    // send formatted to the previously create score file
+    if(fprintf(score_file,WRITE_STRING,write_info)!= (int)strlen(write_info)) {
+        fprintf(stderr,ERROR_FPRINT);
+        exit(EXIT_FAILURE);
+    }
+    
+    fclose(score_file);
+
+    free(score_filename);
+    free(score_full_path);
+    free(write_info);
+  
+}
+
+
+// obtain selected guess word givnen the player's id
+// and write it back to a buffer
+void get_word_guess(char *plid, char *word) {
+
+    char *file_path = NULL;
+    char *line = NULL;
+    char *hint = NULL;
+
+    file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
+    line = (char*)malloc(sizeof(char) * MAX_LINE_LENGTH);
+    hint = (char*)malloc(sizeof(char) * MAX_WORD_SIZE_HINT);
+
+    if(file_path == NULL || hint  == NULL || line == NULL) {
+        fprintf(stderr,ERROR_MALLOC_FILE);
+    }   
+
+    // obtain ongoing game file path
+    sprintf(file_path,GAMES_DATA_ONGOING,plid); 
+
+    FILE *file = fopen(file_path,READ_MODE);
+    if(file == NULL) {
+        memset(word,'\0',sizeof(word));     
+    }
+
+    fgets(line,MAX_LINE_LENGTH,file);
+    sscanf(line,READ_STRING,word,hint);
+    fclose(file);
+
+    free(file_path);
+    free(line);
+    free(hint);
+
+}
+
+
+// rename ongoing game file to moved name (name adopted once the game is finished)
+// create score file if current game play was won
+void rename_and_move_player_file(char *plid,char *termination_status,float n_succ,float n_trials) {
 
     char *current_file_path = NULL;
     char *moved_name = NULL; 
@@ -70,153 +175,104 @@ void rename_and_move_player_file(char* player_id,char termination_status, player
     char *to_move_dir = NULL; 
     char *new_file_path = NULL; 
     char *termination_and_extension = NULL; 
+    char *word = NULL;
 
-    to_move_dir = (char*)malloc(sizeof(char) *PATH_PLAYER_GAME_DIR_LENGTH);
     current_file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
     moved_name = (char*)malloc(sizeof(char) * MOVED_NAME_LENGTH);
     date_and_time = (char*)malloc(sizeof(char) * TIME_FORMATTING_LENGHT); 
+    to_move_dir = (char*)malloc(sizeof(char) *PATH_PLAYER_GAME_DIR_LENGTH);
     new_file_path = (char*)malloc(sizeof(char) * MOVED_PLAY_FILE_LENGTH);
     termination_and_extension = (char*)malloc(sizeof(char) * TERMINATION_AND_EXTENSION_LENGTH);
+    word = (char*) malloc(sizeof(char) * MAX_WORD_SIZE);
 
-    memset(current_file_path,sizeof(current_file_path), '\0');
-    memset(new_file_path,sizeof(new_file_path),'\0');
+    memset(current_file_path,'\0',sizeof(current_file_path));
+    memset(new_file_path,'\0',sizeof(new_file_path));
 
-    // find ongoing game paths
-    sprintf(current_file_path,GAMES_DATA_ONGOING,player_id); 
-    
-    // shape original name
-    sprintf(to_move_dir,GAMES_DATA_PLAYER_DIR,player_id);
+    // obtain ongoing game file path 
+    sprintf(current_file_path,GAMES_DATA_ONGOING,plid); 
 
-    // shape moved_name
+    // build moved file path
+    sprintf(to_move_dir,GAMES_DATA_PLAYER_DIR,plid);
     strcpy(new_file_path,to_move_dir);
     strcat(new_file_path,DIR_FORWARD);
 
-    // get date and time info to append to moved name
+    // obtain last accessed time of ongoing game file before rename
     get_last_accessed_data_and_time(current_file_path,date_and_time);
 
-    // shape moved name
+    // obtain previously selected guess word and write it to a buffer
+    get_word_guess(plid,word);
+
+    // continue the build of moved file path
     sprintf(termination_and_extension,TERMINATION_AND_EXTENSION_FORMATTING,termination_status);
     strcpy(moved_name,date_and_time);
     strcat(new_file_path,moved_name);
     strcat(new_file_path,termination_and_extension);
 
-
+    // rename the file that is:
+    // move it to another directory and change its name
     if(rename(current_file_path,new_file_path) == ERROR) {
         fprintf(stderr,ERROR_RENAME);
 
     }
- 
-    
-    free(to_move_dir);
+
+    // NOTE: SCORE directory files manipulation 
+    // a scoreboard file is created for each game play that ends with success (WIN)
+    // the same player can have several score files associated to different game plays
+
+    // best scenario 
+    // the player guess word the word correctly at start 
+    // score = n_succ / n_trials * 100 ; score = 1/1 * 100  = 100
+
+    // worst case scenario 
+    // the player fails all tries except the last one, in which he correctly guess the word 
+    // score = n_succ / n_trials * 100 ; score = 1 / total tries * 100  
+
+    // verify if the finished game was succesful
+    if(strcmp(termination_status,TERMINATION_STATUS_WIN) == SUCCESS && n_succ != 0 && n_trials != 0) {
+        create_player_score_file(plid,n_succ,n_trials,date_and_time,word);
+
+    }
+
     free(current_file_path);
     free(moved_name);
     free(date_and_time);
+    free(to_move_dir);
+    free(new_file_path);
     free(termination_and_extension);
-    
-    
-    // SCOREBOARD PART
-    
-    int new_score = 0;
-    char new_line[MAX_LINE_LENGTH];
-    int score = 0;
-    char lines[10][MAX_LINE_LENGTH];
-    
-    // see if win
-    if (termination_status == TERMINATION_STATUS_WIN)
-    	new_score = 100;
-    
-    //make newline with info
-    sprintf(new_line, "%d %s %s %d %d\n", new_score, player_id, game.word, game.successful_trials, game.trial - 1);
-    printf("%s\n", new_line);
-    //TODO make this file if doesnt exist
-    //open file
-  	char scoreboard_file_path[strlen(SCORES_DATA_DIR) + strlen(SCOREBOARD_FILE) + 1];
-  	sprintf(scoreboard_file_path, "%s/%s", SCORES_DATA_DIR, SCOREBOARD_FILE);
-    FILE* scoreboard_file = fopen(scoreboard_file_path, "r+");
-    
-    if (scoreboard_file != NULL)
-    	printf("abre o file\n");
-  	
-  	//TODO fix this
-    int stop = -1;
-    int counter = 0;
-    for (; counter < 10; counter++) {
-    
-    	//reads lines from scoreboard
-    	fgets(lines[counter], MAX_LINE_LENGTH, scoreboard_file);
-    	//read score in that line
-    	sscanf(lines[counter], "%d", &score);
-    	
-    	//set stop to the line you want to change
-    	//if at EOF dont read more lines
-    	if (feof(scoreboard_file)) {
-    		stop = counter;
-    		break;
-    	}
-    	else if (score < new_score && stop == -1)
-    		stop = counter;
-    }
-    
-    //back to the beginning of file
-	rewind(scoreboard_file);
-			
-	int n = 0;
-	for (int i = 0; i < counter; i++) {
-		// change the line to newline
-		if (i == stop) {
-			printf("a\n");
-			fprintf(scoreboard_file, new_line);
-		}
-		//leave the rest the same/lower them
-		else {
-			printf("b\n");
-			fprintf(scoreboard_file, lines[n]);
-			n += 1;
-		}
-    }
-    
-    fclose(scoreboard_file);
+    free(word);
 
 }
 
 
-
-
-
-// write the game play to the player game file
-// NOTE: a player game file has the following format:
-// GAME_plid.txt 
-// a play can be a letter or guess 
-// T l
-// G word
-// TODO: description | Fix me
+// write game play to file given as input
+// NOTE: 3 different possible writes
+// start game write - word hint_file
+// play game write  - trial_code(T) letter
+// guess game write - guess_code(G) word
 void write_game_play(char *file_path, char *buffer,char *mode) {
     
-    // the stream is positioned at the beginning of the file
     FILE *file = fopen(file_path,mode);
     if(file_path == NULL) {
-        fprintf(stderr, "fopen(): failed to open file for writing");
+        fprintf(stderr,ERROR_OPEN_FILE);
         exit(EXIT_FAILURE);
 
     }
 
-    if(fprintf(file,"%s",buffer)!= (int)strlen(buffer)) {
-        fprintf(stderr,"fprintf(): failed to transmit all bytes");
+    if(fprintf(file,WRITE_STRING,buffer)!= (int)strlen(buffer)) {
+        fprintf(stderr,ERROR_FPRINT);
         exit(EXIT_FAILURE);
     }
 
     if(fclose(file) != 0) {
-        fprintf(stderr, "fclose(): failed to close file");
+        fprintf(stderr,ERROR_CLOSE_FILE );
         exit(EXIT_FAILURE);
     }
 
 }
 
 
-
-void get_hint_filename(char *buffer,char *player_id) {
-
-    printf("Depois de entrar na get_hint_filename\n");
+// write the hint file name to a buffer given the player's id
+void get_hint_filename(char *buffer,char *plid) {
 
     char *file_path = NULL;
     char *line = NULL;
@@ -230,29 +286,20 @@ void get_hint_filename(char *buffer,char *player_id) {
         fprintf(stderr,ERROR_MALLOC_FILE);
     }   
 
-    //shape possible ongoing game filepath
+    // obtain ongoing game file path
+    sprintf(file_path,GAMES_DATA_ONGOING,plid); 
 
-    //find ongoing game paths
-    sprintf(file_path,GAMES_DATA_ONGOING,player_id); 
-
-    if(access(file_path,F_OK) != SUCESS)   //file doesn't exists
-        sprintf(buffer, NO_HINT);
- 
-    else {
-    	FILE *file = fopen(file_path,"r");
-    	if(file == NULL) {
-        	// set buffer to null 
-        	memset(buffer,strlen(buffer),'\0');
+       
+    FILE *file = fopen(file_path,READ_MODE);
+    if(file == NULL) {
+        // set buffer to null
+        // useful for conditionals
+        memset(buffer,'\0',sizeof(buffer));
         
-    	}
-
-    	fgets(line,MAX_LINE_LENGTH,file);
-    	sscanf(line, "%s %s",word,buffer);
-
-    	printf("o ficheiro e:");
-    	printf("%s",buffer);
-    	fclose(file);
     }
+
+    fgets(line,MAX_LINE_LENGTH,file);
+    sscanf(line,READ_STRING,word,buffer);
 
     free(file_path);
     free(line);
@@ -261,42 +308,38 @@ void get_hint_filename(char *buffer,char *player_id) {
 }
 
 
-void get_state_filename(char *player_id, char *buffer, char* code) {
+// obtain the formatted state file name 
+void get_state_filename(char *plid, char *buffer, char* code) {
 
     char *ongoing_game_file_path = NULL;
     char *finished_game_file_path = NULL;
 
     // set buffer to null, useful for conditionals
-    memset(buffer,strlen(buffer),'\0');
-
+    memset(buffer,'\0',sizeof(buffer));
 
     ongoing_game_file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
    
     // find ongoing game file path
-    sprintf(ongoing_game_file_path,GAMES_DATA_ONGOING,player_id);
+    sprintf(ongoing_game_file_path,GAMES_DATA_ONGOING,plid);
+
     // check if file exists
-    if(access(ongoing_game_file_path,F_OK) == SUCESS) { //file exists
-    	strcpy(code, "ACT");
+    if(access(ongoing_game_file_path,F_OK) == SUCESS) {
+    	strcpy(code,STATE_ACTIVE);
         strcpy(buffer,ongoing_game_file_path);
-        printf("filepath %s\n",buffer);
     }  
     else {
-
-        // we can look for it at another directory
-        find_last_game(player_id,buffer);
-        strcpy(code, "FIN");
-        printf("moved file:\n");
-        printf("%s",buffer);
-        if(buffer == NULL) {
-            printf("to think\n");
-        }
+        
+        find_last_game(plid,buffer);
+        strcpy(code,STATE_FIN);
 
     }
 
+    free(ongoing_game_file_path);
+
 }
 
-// TODO: description
-void write_game_play_to_file(char * player_id,char *info,char *type) {
+// handle call to write a game play
+void write_game_play_to_file(char * plid,char *info,char *type) {
 
     char *file_path = NULL;
     char *write_info = NULL;
@@ -307,13 +350,12 @@ void write_game_play_to_file(char * player_id,char *info,char *type) {
     if(file_path == NULL || write_info == NULL) {
         fprintf(stderr,ERROR_MALLOC_FILE);
     }   
-     
-    // find ongoing game paths
-    sprintf(file_path,GAMES_DATA_ONGOING,player_id); 
+
+    sprintf(file_path,GAMES_DATA_ONGOING,plid); 
 
     if(strcmp(type,PLAY) == SUCESS) {
-        sprintf(write_info,WRITE_PLAY,PLAY_TRIAL_CODE,tolower(info[0])); // write play formatted to buffer
-        write_game_play(file_path,write_info,APPEND_MODE);               // write to player's file
+        sprintf(write_info,WRITE_PLAY,PLAY_TRIAL_CODE,tolower(info[0])); 
+        write_game_play(file_path,write_info,APPEND_MODE);        
 
     }
     else if(strcmp(type,GUESS) == SUCESS) {
@@ -327,9 +369,8 @@ void write_game_play_to_file(char * player_id,char *info,char *type) {
 
     free(file_path);
     free(write_info);
+
 }
-
-
 
 
 // find the last played game given a player id and stores the 
@@ -347,8 +388,8 @@ void find_last_game(char *plid,char *fname) {
     found = 0;
 
     if(n_entries <= 0) {
-        // does nothing
-        printf("does nothing");
+        fprintf(stderr,ERROR_UNKNOWN);
+        exit(EXIT_FAILURE);
     } 
     else {
         while(n_entries--) {

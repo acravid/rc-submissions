@@ -319,6 +319,8 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 	write_game_play_to_file(player_id,letter_buffer,PLAY_CODE);
 
 	games[playerid - PLAYERID_MIN].trial += 1;
+	float n_succ = 0;
+	float n_trials = 0;
 	
 	//incorrect play
 	if (strchr(games[playerid - PLAYERID_MIN].word, letter) == NULL) {
@@ -331,15 +333,15 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			sprintf(res, "%s %d", OVR_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL, games[playerid - PLAYERID_MIN]);
-			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL,n_succ,n_trials);
+
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;		
 		}
 		else
 			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 	}
-	//correct play
+	// correct play
 	else {
 		int count = 0;
 		int pos[MAX_WORD_SIZE];
@@ -351,17 +353,19 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 		}
 		
 		games[playerid - PLAYERID_MIN].successful_trials += 1;
+		n_succ = games[playerid - PLAYERID_MIN].successful_trials;
+		n_trials = games[playerid - PLAYERID_MIN].trial;
 		games[playerid - PLAYERID_MIN].n_letters -= count;
 		int len = strlen(games[playerid - PLAYERID_MIN].played_letters);
 		games[playerid - PLAYERID_MIN].played_letters[len] = letter;
 		games[playerid - PLAYERID_MIN].played_letters[len + 1] = '\0';
 		
-		//won
+		// won
 		if (games[playerid - PLAYERID_MIN].n_letters == 0) {
 			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
 
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id, TERMINATION_STATUS_WIN, games[playerid - PLAYERID_MIN]);
+			rename_and_move_player_file(player_id, TERMINATION_STATUS_WIN,n_succ,n_trials);
 			
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			games[playerid - PLAYERID_MIN].trial = 0;		
@@ -446,8 +450,11 @@ void guess(char *player_id, char* word, char* res) {
 	write_game_play_to_file(player_id,word,GUESS_CODE);
 
 	games[playerid - PLAYERID_MIN].trial += 1;
+	float n_succ = 0;
+	float n_trials = 0;
+
 	
-	//wrong guess
+	// wrong guess
 	if (strcmp(games[playerid - PLAYERID_MIN].word, word) != EQUAL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
 		//lost
@@ -455,7 +462,7 @@ void guess(char *player_id, char* word, char* res) {
 			sprintf(res, "%s", OVR_REPLY_CODE);;
 			
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL, games[playerid - PLAYERID_MIN]);
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL,n_succ,n_trials);
 			
 			games[playerid - PLAYERID_MIN].successful_trials = 0;
 			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
@@ -464,13 +471,13 @@ void guess(char *player_id, char* word, char* res) {
 		else
 			sprintf(res, "%s", NOK_REPLY_CODE);
 	}
-	//right guess
+	// right guess
 	else {
 		games[playerid - PLAYERID_MIN].successful_trials += 1;
 		sprintf(res, "%s", WIN_REPLY_CODE);
 
 		create_player_game_directory(player_id); 
-		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN, games[playerid - PLAYERID_MIN]);
+		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN,n_succ,n_trials);
 		
 		games[playerid - PLAYERID_MIN].successful_trials = 0;
 		games[playerid - PLAYERID_MIN].trial = 0;
@@ -507,8 +514,12 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 			
 		//ends the game
 		else {
+
+			int n_succ = 0;
+			int n_trials = 0;
+			
 			create_player_game_directory(playerid); 
-			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT, games[atoi(playerid) - PLAYERID_MIN]);	
+			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT,n_succ,n_trials);
 				
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;

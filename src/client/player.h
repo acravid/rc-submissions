@@ -10,8 +10,8 @@
 /*---------------MACROS---------------*/
 
 /*Default settings: */
-#define DEFAULT_GSIP "tejo.ist.utl.pt"
-#define DEFAULT_GSPORT "58011"
+#define DEFAULT_GSIP "unknown448500531966.lan"
+#define DEFAULT_GSPORT "58091"
 
 /*Maximum values: */
 #define MAX_FILENAME 28
