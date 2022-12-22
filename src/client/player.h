@@ -9,6 +9,10 @@
 
 /*---------------MACROS---------------*/
 
+/*Default settings: */
+#define DEFAULT_GSIP "tejo.ist.utl.pt"
+#define DEFAULT_GSPORT "58091"
+
 /*Maximum values: */
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
@@ -30,10 +34,6 @@
 #define SHORT_STATE_COMMAND "st"
 #define QUIT_COMMAND "quit"
 #define EXIT_COMMAND "exit"
-
-/*Default settings: */
-#define DEFAULT_GSIP "unknown448500531966.lan"
-#define DEFAULT_GSPORT "58091"
 
 /*Pathnames: */     
 #define SCOREBOARD_PATHNAME "./client/RECEIVED_FILES/"

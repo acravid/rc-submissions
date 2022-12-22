@@ -81,23 +81,30 @@ optional_args parse_opt(int argc, char **argv) {
     if(argc >= 3) {
     	if(strcmp(argv[1], "-n") == EQUAL) {
     	    opt_args.ip = argv[2];
-            if(argc == 5 & strcmp(argv[3], "-p") == EQUAL)
-    			opt_args.port = argv[4];
-    	    else {
-    	        usage();
-	        	exit(EXIT_FAILURE);
+    	    if(argc == 5) {
+		        if(strcmp(argv[3], "-p") == EQUAL)
+					opt_args.port = argv[4];
+			    else {
+			    	printf("a\n");
+			        usage();
+			    	exit(EXIT_FAILURE);
+			    }
             }
 		}
         else if(strcmp(argv[1], "-p") == EQUAL) {
 	    	opt_args.port = argv[2];
-            if(argc == 5 & strcmp(argv[3], "-n") == EQUAL) 
-    	        opt_args.ip = argv[4];
-	    	else {
-	        	usage();
-	        	exit(EXIT_FAILURE);
-            }
+	    	if (argc == 5) {
+		        if(strcmp(argv[3], "-n") == EQUAL) 
+			        opt_args.ip = argv[4];
+				else {
+					printf("b\n");
+			    	usage();
+			    	exit(EXIT_FAILURE);
+		        }
+			}
 		}
         else {
+        	printf("c\n");
     	    usage();
             exit(EXIT_FAILURE);
         }
