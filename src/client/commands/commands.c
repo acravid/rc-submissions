@@ -181,6 +181,12 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
 	
+	//check if client has a game running
+	if(game_stats->running == NO) {
+		printf(NO_GAME_ERROR);
+		return ERROR;
+	}
+	
 	//prepare request
 	get_word(letter, 2);
 	game_stats->last_letter = toupper(letter[0]);
@@ -313,8 +319,15 @@ int send_guess_request(socket_ds* sockets_ds, game_status* game_stats) {
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
 
-	//prepare request
 	get_word(word, MAX_WORD_SIZE);
+	
+	//check if client has a game running
+	if(game_stats->running == NO) {
+		printf(NO_GAME_ERROR);
+		return ERROR;
+	}
+	
+	//prepare request
 	memset(request,'\0',sizeof(request));
 	game_stats->guess = word;
 	sprintf(request, "PWG %s %s %d\n",game_stats->player_id, word, game_stats->trial);
@@ -421,6 +434,11 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
 	
+	//check if client has a game running
+	if(game_stats->running == NO) {
+		printf(NO_GAME_ERROR);
+		return ERROR;
+	}
 	//prepare request
 	sprintf(request, "QUT %s\n", game_stats->player_id);
 	
@@ -710,6 +728,12 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	ssize_t ret_tcp_response = ERROR;
 	int timeout_count = 0;
 	
+	//check if client has a game running
+	if(game_stats->running == NO) {
+		printf(NO_GAME_ERROR);
+		return ERROR;
+	}
+	
 	//opens tcp connection
 	tcp_setup(sockets_ds, opt_args);
 	
@@ -858,6 +882,12 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 	ssize_t ret_tcp_request = ERROR;
 	ssize_t ret_tcp_response = ERROR;
 	int timeout_count = 0;
+	
+	//check if client has a game running
+	if(game_stats->running == NO) {
+		printf(NO_GAME_ERROR);
+		return ERROR;
+	}
 	
 	//opens a tcp connection
 	tcp_setup(sockets_ds, opt_args);
