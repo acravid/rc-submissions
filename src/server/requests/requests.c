@@ -86,7 +86,7 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 		exit(EXIT_FAILURE);
     }
 
-    if((ret = getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr) != SUCCESS)) {
+    if(getaddrinfo(NULL,args.port,&sockets_ds->addrinfo_udp, &sockets_ds->addrinfo_udp_ptr) != SUCCESS) {
         fprintf(stderr, ERROR_ADDR_UDP);
 		exit(EXIT_FAILURE);
     }
