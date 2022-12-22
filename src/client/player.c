@@ -162,8 +162,11 @@ void handle_input(socket_ds* sockets_ds, optional_args opt_args, game_status* ga
 
 		}
 		//exit command
-		else if (strcmp(command, EXIT_COMMAND) == EQUAL) 
-	    	break; 
+		else if (strcmp(command, EXIT_COMMAND) == EQUAL) {
+			if (game_stats->running == YES && send_quit_request(sockets_ds, game_stats) == SUCCESS)
+				printf(QUIT_MESSAGE);
+	    	break;
+	    } 
     }
 }
 
