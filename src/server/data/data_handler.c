@@ -62,6 +62,65 @@ void get_last_accessed_data_and_time(char *file_path, char *buffer) {
 }
 
 
+bool create_scoreboard_file() {
+
+
+    char *fname = (char*)malloc(sizeof(char) * FILE_NAME_MAX_LENGTH);
+    char *line_to_copy = (char*)malloc(sizeof(char) * TEXT_FILE_LENGTH);
+
+    // create scoreboard file for writing
+    FILE *top_scoreboard_file = fopen(SCOREBOARD_DIR,WRITING_MODE_ONLY);
+    FILE *reading_file;
+    if(top_scoreboard_file == NULL) {
+        fprintf(stderr,ERROR_OPEN_FILE);
+    }
+
+    // open directory score files are stored
+    DIR *dir = opendir(GAMES_SCORE_DIR_NEXT);
+    if(dir == NULL) {
+        // this never happens
+        return false;
+    }
+
+    // read the entries fo directory into an array
+    struct dirent **entries;
+    int num_entries = scandir(GAMES_SCORE_DIR_NEXT,&entries,NULL,alphasort);
+    int i_file = 0;
+    if(num_entries < 0) {
+        return false;
+    }
+    
+    while(num_entries--) {
+        if(entries[num_entries]->d_name[0] != '.') {
+            sprintf(fname,GAME_SCORE_DIR_FILE,entries[num_entries]->d_name);
+            reading_file = fopen(fname,READ_MODE);
+            printf("filename: %s\n",fname);
+            if(reading_file != NULL) {
+                if(fgets(line_to_copy,TEXT_FILE_LENGTH,top_scoreboard_file) == NULL) {
+                    fclose(reading_file);
+                    return false;
+                }   
+                fprintf(top_scoreboard_file,"%s\n",line_to_copy);
+                fclose(reading_file);
+                ++i_file;
+            }
+            if(i_file == MAX_TOP_SCORE_FILES) {
+                break;;
+            }
+
+        }
+    }
+
+    fclose(top_scoreboard_file);
+    free(fname);
+    free(line_to_copy);
+    return true;
+
+}	
+
+
+	// NOTE:
+	// the scoreboard file is saved under GAME_DATA/scoreboard.txt
 // handle the creation of a player's game play score file 
 // and writing of useful information to this same file
 void create_player_score_file(char *plid,float n_succ,float n_trials,char *date_and_time,char *word) {
@@ -230,7 +289,7 @@ void rename_and_move_player_file(char *plid,char *termination_status,float n_suc
     // verify if the finished game was successful
     if(strcmp(termination_status,TERMINATION_STATUS_WIN) == SUCCESS && n_succ != 0 && n_trials != 0) {
         create_player_score_file(plid,n_succ,n_trials,date_and_time,word);
-
+ 
     }
 
     free(current_file_path);

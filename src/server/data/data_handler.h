@@ -23,6 +23,7 @@ void create_player_game_directory(char*);
 void rename_and_move_player_file(char*,char*,float,float);
 void get_hint_filename(char*,char*);
 void get_state_filename(char*,char*,char*);
+bool create_scoreboard_file();
 
 
 
@@ -36,11 +37,14 @@ void get_state_filename(char*,char*,char*);
 #define GAME_DATA "GAME_DATA"
 #define GAMES_DATA_DIR "GAME_DATA/GAMES"
 #define GAMES_SCORE_DIR "GAME_DATA/SCORES"
+#define GAMES_SCORE_DIR_NEXT "GAME_DATA/SCORES/"
+#define SCOREBOARD_DIR "GAME_DATA/scoreboard.txt"
 #define PLID_DIR "/%s"
 #define GAME_FILE "/%s"
 #define GAMES_DATA_ONGOING GAMES_DATA_DIR GAME_WRITE_PLAYER_FILE
 #define GAMES_DATA_PLAYER_DIR GAMES_DATA_DIR PLID_DIR
 #define GAME_DATA_PLAYER_DIR_AND_FILE GAMES_DATA_PLAYER_DIR GAME_FILE
+#define GAME_SCORE_DIR_FILE GAMES_SCORE_DIR GAME_FILE
 
 
 
@@ -69,6 +73,7 @@ void get_state_filename(char*,char*,char*);
 
 
 #define READ_MODE "r"
+#define WRITING_MODE_ONLY "w"
 #define WRITING_MODE "w+"
 #define APPEND_MODE "a+"
 #define APPEND_STANDARD "a"
@@ -111,7 +116,7 @@ void get_state_filename(char*,char*,char*);
 #define FILE_NAME_MAX_LENGTH 50
 #define NUMBER_OF_LINES_GUESS_FILE 26
 #define TEXT_FILE_LENGTH 64
-
+#define MAX_TOP_SCORE_FILES 10
 // GAME_DATA/GAMES/GAME_6.txt
 // GAME_DATA/
 
@@ -132,7 +137,10 @@ void get_state_filename(char*,char*,char*);
 #define ERROR_FPRINT "\n"\
                      "fprintf(): failed to send formatted output to file\n"
 #define ERROR_CLOSE_FILE "\n"\
-                         "An erros has occurred, failed to close file\n"
+                         "An error has occurred, failed to close file\n"
+
+#define ERROR_FGETS "\n"\
+                    "An error has occurred, failed to read line"
 
 #define ERROR_UNKNOWN "\n"\
                        "An unknown error has occurred, please try again later\n"

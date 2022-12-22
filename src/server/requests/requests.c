@@ -746,23 +746,24 @@ void scoreboard_request_handler(char* request, size_t len, char* reply) {
 
 //Makes and sends the scoreboard
 void scoreboard(char* reply) {
-	
-	char scoreboard_path_name[strlen(SCORES_DATA_DIR) + strlen(SCOREBOARD_FILE) + 1];
-	char data[MAX_FILE_SIZE];
+
 	int size = 0;
+
+	if(create_scoreboard_file() == false) {
+		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
+	}
 	
-	//open file
-	sprintf(scoreboard_path_name, "%s/%s", SCORES_DATA_DIR, SCOREBOARD_FILE);
-	FILE* scoreboard_file = fopen(scoreboard_path_name, "r");
+	char data[MAX_FILE_SIZE];
+	FILE* scoreboard_file = fopen(SCOREBOARD_DIR,READ_MODE);
 	
 	//read scoreboard data
 	for (char c = fgetc(scoreboard_file); c != EOF; c = fgetc(scoreboard_file), size += 1)
 		data[size] = c;
 	
-	if (size == 0)
-		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
-	else
-		sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE, size, data);
+
+	sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE, size, data);
+	printf("%s",reply);
+	
 		
 	fclose(scoreboard_file);
 }
