@@ -230,25 +230,29 @@ void get_hint_filename(char *buffer,char *player_id) {
         fprintf(stderr,ERROR_MALLOC_FILE);
     }   
 
-    // shape possible ongoing game filepath
+    //shape possible ongoing game filepath
 
-    // find ongoing game paths
+    //find ongoing game paths
     sprintf(file_path,GAMES_DATA_ONGOING,player_id); 
 
-       
-    FILE *file = fopen(file_path,"r");
-    if(file == NULL) {
-        // set buffer to null 
-        memset(buffer,strlen(buffer),'\0');
+    if(access(file_path,F_OK) != SUCESS)   //file doesn't exists
+        sprintf(buffer, NO_HINT);
+ 
+    else {
+    	FILE *file = fopen(file_path,"r");
+    	if(file == NULL) {
+        	// set buffer to null 
+        	memset(buffer,strlen(buffer),'\0');
         
+    	}
+
+    	fgets(line,MAX_LINE_LENGTH,file);
+    	sscanf(line, "%s %s",word,buffer);
+
+    	printf("o ficheiro e:");
+    	printf("%s",buffer);
+    	fclose(file);
     }
-
-    fgets(line,MAX_LINE_LENGTH,file);
-    sscanf(line, "%s %s",word,buffer);
-
-    printf("o ficheiro e:");
-    printf("%s",buffer);
-    
 
     free(file_path);
     free(line);

@@ -118,6 +118,7 @@
 #define SUCCESS 0
 #define ASCII_A 65
 #define ASCII_z 122
+#define NO_HINT "NO_HINT_FILE"
 
 /*---------------Structs---------------*/
 

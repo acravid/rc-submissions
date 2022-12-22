@@ -44,8 +44,8 @@ void udp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     timeout.tv_sec = SOCKET_TIMEOUT;
     timeout.tv_usec = 0;
     
+    //set timer
     if(setsockopt(sockets_ds->fd_udp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
-        // Failed to get an internet address
 		cleanup_connection(sockets_ds->fd_udp,sockets_ds->addrinfo_udp_ptr);
 		fprintf(stderr, ERROR_ADDR_UDP);
 		exit(EXIT_FAILURE);
@@ -180,12 +180,6 @@ int send_play_request(socket_ds* sockets_ds, game_status* game_stats) {
 	socklen_t addrlen;
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
-	
-	//check if client has a game running
-	if(game_stats->running == NO) {
-		printf(NO_GAME_ERROR);
-		return ERROR;
-	}
 	
 	//prepare request
 	get_word(letter, 2);
@@ -427,11 +421,6 @@ int send_quit_request(socket_ds* sockets_ds, game_status* game_stats) {
 	struct sockaddr_in addr;
 	addrlen = sizeof(addr);
 	
-	//check if client has a game running
-	if(game_stats->running == NO) {
-		printf(NO_GAME_ERROR);
-		return ERROR;
-	}
 	//prepare request
 	sprintf(request, "QUT %s\n", game_stats->player_id);
 	
@@ -534,15 +523,14 @@ void tcp_setup(socket_ds *sockets_ds, optional_args opt_args) {
     timeout.tv_sec = SOCKET_TIMEOUT;
     timeout.tv_usec = 0;
     
+    //set timer
     if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
-        // Failed to get an internet address
 		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 		fprintf(stderr, ERROR_ADDR_TCP);
 		exit(EXIT_FAILURE);
     }
 
     if(setsockopt(sockets_ds->fd_tcp, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != SUCCESS) {
-        // Failed to get an internet address
 		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 		fprintf(stderr, ERROR_ADDR_TCP);
 		exit(EXIT_FAILURE);
@@ -584,6 +572,7 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 		ret_tcp_request = write(sockets_ds->fd_tcp, "GSB\n", SCOREBOARD_REQUEST_SIZE);
 		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		else if (ret_tcp_request == ERROR) {
@@ -598,6 +587,7 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
 		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		else if (ret_tcp_response == ERROR) {
@@ -612,6 +602,7 @@ int send_scoreboard_request(socket_ds* sockets_ds, optional_args opt_args, game_
 		if (strcmp(code, "ERR") == EQUAL) {
 			game_stats->last_play = ERR;
 			printf(ERROR_RECV_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		printf(SERVER_ERROR);
@@ -719,12 +710,6 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	ssize_t ret_tcp_response = ERROR;
 	int timeout_count = 0;
 	
-	//check if client has a game running
-	if(game_stats->running == NO) {
-		printf(NO_GAME_ERROR);
-		return ERROR;
-	}
-	
 	//opens tcp connection
 	tcp_setup(sockets_ds, opt_args);
 	
@@ -736,6 +721,7 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 		ret_tcp_request = write(sockets_ds->fd_tcp, request, HINT_REQUEST_SIZE);
 		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		else if (ret_tcp_request == ERROR) {
@@ -749,6 +735,7 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 	while (ret_tcp_response == ERROR) {
 		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
 		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			printf(ERROR_SEND_TCP);
 			return ERROR;
 		}
@@ -766,6 +753,7 @@ int send_hint_request(socket_ds* sockets_ds, optional_args opt_args, game_status
 			exit(EXIT_FAILURE);
 		}
 		printf(ERROR_RECV_TCP);
+		cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 		return ERROR;
 	}
 
@@ -882,6 +870,7 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 		ret_tcp_request = write(sockets_ds->fd_tcp, request, STATE_REQUEST_SIZE);
 		if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		else if (ret_tcp_request == ERROR) {
@@ -896,6 +885,7 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 		ret_tcp_response = read(sockets_ds->fd_tcp, code, 4);
 		if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 			printf(ERROR_SEND_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		}
 		else if (ret_tcp_response == ERROR) {
@@ -909,6 +899,7 @@ int send_state_request(socket_ds* sockets_ds, optional_args opt_args, game_statu
 	if (strcmp(code, "RST") != EQUAL) {
 		if (strcmp(code, "ERR") == EQUAL)
 			printf(ERROR_RECV_TCP);
+			cleanup_connection(sockets_ds->fd_tcp,sockets_ds->addrinfo_tcp_ptr);
 			return ERROR;
 		printf(SERVER_ERROR);
 		exit(EXIT_FAILURE);

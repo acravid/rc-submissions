@@ -157,7 +157,6 @@ void udp_request_handler(socket_ds* sockets_ds) {
 
 //Reads the first 3 chars of UDP request to send it to the correct handler
 void udp_select_requests_handler(char *buffer, size_t len, char *reply) {
-	printf("%s\n", buffer);
     if(strncmp(START_CODE, buffer, CODE_SIZE) == EQUAL) {
         start_request_handler(buffer,len,reply);
     } 
@@ -173,7 +172,6 @@ void udp_select_requests_handler(char *buffer, size_t len, char *reply) {
     else {
         sprintf(reply, "%s\n", ERROR_REPLY_CODE);
     }
-    printf("%s\n", reply);
 }
 
 
@@ -188,7 +186,6 @@ void start_request_handler(char *buffer, size_t len, char *reply) {
 		char playerid[PLAYERID_SIZE + 1];
 
 		sscanf(&buffer[CODE_SIZE], "%s", playerid);
-		printf("%s\n%s", buffer, playerid);
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[len - 1] != '\n') 
@@ -375,7 +372,6 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 			for (int i = 0; i < count; i++) {
 				sprintf(&res[strlen(res)], " %d", pos[i]);
 			}
-			printf("%s\n", res);
 		}
 	}
 }
@@ -646,7 +642,11 @@ void tcp_request_handler(socket_ds* sockets_ds) {
             
 			//make request a string
 			request[ret_tcp_request] = '\0';
-
+			
+			//print request
+        	if (verbose)
+				printf("IP: %s Port: %u Sent: %s", inet_ntoa(addr.sin_addr), addr.sin_port, request);
+			
             // process request
 			tcp_select_requests_handler(request, ret_tcp_request, reply);
 			
@@ -779,7 +779,7 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 		else {
 			char hint_name[MAX_FILENAME];
 			get_hint_filename(hint_name, playerid);
-			if (hint == NULL)
+			if (strcmp(hint_name, NO_HINT) == EQUAL) 
 				sprintf(reply,"%s %s\n", HINT_REPLY_CODE, NOK_REPLY_CODE);
 			else {
 				char res[MAX_HINT_REPLY_SIZE];
