@@ -91,26 +91,38 @@ bool create_scoreboard_file() {
     }
     
     while(num_entries--) {
+
         if(entries[num_entries]->d_name[0] != '.') {
             sprintf(fname,GAME_SCORE_DIR_FILE,entries[num_entries]->d_name);
             reading_file = fopen(fname,READ_MODE);
             printf("filename: %s\n",fname);
             if(reading_file != NULL) {
-                if(fgets(line_to_copy,TEXT_FILE_LENGTH,top_scoreboard_file) == NULL) {
-                    fclose(reading_file);
-                    return false;
-                }   
-                fprintf(top_scoreboard_file,"%s\n",line_to_copy);
-                fclose(reading_file);
+                printf("valid reading file\n");
+                int c = fgetc(reading_file);
+
+                while(c!= EOF && c != '\n') {
+                    fputc(c,top_scoreboard_file);
+                    c = fgetc(reading_file);
+                }
+                fputc('\n',top_scoreboard_file);
+
+       
+                //fprintf(top_scoreboard_file,"%s\n",line_to_copy);
+                printf("%s",top_scoreboard_file);
+               
                 ++i_file;
             }
+        
             if(i_file == MAX_TOP_SCORE_FILES) {
                 break;;
             }
+             fclose(reading_file);
 
         }
+        free(entries[num_entries]);
     }
 
+    free(entries);
     fclose(top_scoreboard_file);
     free(fname);
     free(line_to_copy);
@@ -144,6 +156,8 @@ void create_player_score_file(char *plid,float n_succ,float n_trials,char *date_
     temp = score;
     int n_succ_fixed = n_succ;
     int n_trials_without_start = n_trials - 1;
+
+    temp = (temp > MAX_SCORE) ? MAX_SCORE : temp;
 
     // write both the filename (already formatted) and its formatted content to two separate buffers
     if(temp < NOT_DOZEN) {;

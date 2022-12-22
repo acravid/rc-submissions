@@ -117,8 +117,8 @@ bool create_scoreboard_file();
 #define NUMBER_OF_LINES_GUESS_FILE 26
 #define TEXT_FILE_LENGTH 64
 #define MAX_TOP_SCORE_FILES 10
-// GAME_DATA/GAMES/GAME_6.txt
-// GAME_DATA/
+#define MAX_SCORE 100
+
 
 #define MAX_WORD_SIZE_HINT 31 
 
