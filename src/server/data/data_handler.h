@@ -22,7 +22,7 @@ void write_game_play_to_file(char *,char*,char*);
 void create_player_game_directory(char*);
 void rename_and_move_player_file(char*,char);
 void get_hint_filename(char*,char*);
-void get_state_filename(char*,char*);
+void get_state_filename(char*,char*,char*);
 
 
 
