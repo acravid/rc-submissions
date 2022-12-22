@@ -227,7 +227,7 @@ void rename_and_move_player_file(char *plid,char *termination_status,float n_suc
     // the player fails all tries except the last one, in which he correctly guess the word 
     // score = n_succ / n_trials * 100 ; score = 1 / total tries * 100  
 
-    // verify if the finished game was succesful
+    // verify if the finished game was successful
     if(strcmp(termination_status,TERMINATION_STATUS_WIN) == SUCCESS && n_succ != 0 && n_trials != 0) {
         create_player_score_file(plid,n_succ,n_trials,date_and_time,word);
 
