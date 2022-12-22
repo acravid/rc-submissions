@@ -728,7 +728,7 @@ void tcp_request_handler(socket_ds* sockets_ds) {
 			char size[MAX_FILE_SIZE_DIGITS];
 			char data[MAX_FILE_SIZE];
 			
-            ret_udp_request = ERROR;
+            ret_tcp_request = ERROR;
             timeout_count = 0;
             while (ret_tcp_request == ERROR) {
 				ret_tcp_request = read(newfd, request, CLIENT_TCP_MAX_REQUEST_SIZE);
@@ -759,43 +759,43 @@ void tcp_request_handler(socket_ds* sockets_ds) {
             timeout_count = 0;
 			w_buffer = 0;
 			//read status filename filesize
-			while (ret_udp_response == ERROR || w_buffer != len) {
-				ret_udp_response = write(newfd, reply, len - w_buffer);
-				if (ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			while (ret_tcp_response == ERROR || w_buffer != len) {
+				ret_tcp_response = write(newfd, reply, len - w_buffer);
+				if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 					fprintf(stderr, ERROR_WRITE);
                 	close(newfd);
 					exit(EXIT_FAILURE);
 				}
-				else if (ret_udp_response == ERROR) {
+				else if (ret_tcp_response == ERROR) {
 					printf(TIMEOUT_SEND_TCP);
 					timeout_count += 1;
 				}
 				else
-					w_buffer += ret_udp_response;
+					w_buffer += ret_tcp_response;
 			}
 			
 			if (strcmp(status, "OK") == EQUAL) {
 				fread(data, atoi(size) + 1, 1, hint_data_file);
 				fclose(hint_data_file);
 				
-				ret_udp_request = ERROR;
+				ret_tcp_request = ERROR;
             	timeout_count = 0;
 				w_buffer = 0;
 				len = (size_t) atoi(size);
 				//read status filename filesize
-				while (ret_udp_response == ERROR || w_buffer != len) {
-					ret_udp_response = write(newfd, data, len - w_buffer);
-					if (ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+				while (ret_tcp_response == ERROR || w_buffer != len) {
+					ret_tcp_response = write(newfd, data, len - w_buffer);
+					if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 						fprintf(stderr, ERROR_WRITE);
                 		close(newfd);
 						exit(EXIT_FAILURE);
 					}
-					else if (ret_udp_response == ERROR) {
+					else if (ret_tcp_response == ERROR) {
 						printf(TIMEOUT_SEND_TCP);
 						timeout_count += 1;
 					}
 					else
-						w_buffer += ret_udp_response;
+						w_buffer += ret_tcp_response;
 				}
 			}
 				

@@ -12,7 +12,7 @@
 /*Maximum values: */
 #define MAX_FILENAME 28
 #define MAX_FILE_SIZE_DIGITS 10
-#define SOCKET_TIMEOUT 1
+#define SOCKET_TIMEOUT 30
 #define MAX_TIMEOUTS 2
 
 /*Commands: */
