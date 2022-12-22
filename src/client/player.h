@@ -11,7 +11,7 @@
 
 /*Default settings: */
 #define DEFAULT_GSIP "tejo.ist.utl.pt"
-#define DEFAULT_GSPORT "58091"
+#define DEFAULT_GSPORT "58011"
 
 /*Maximum values: */
 #define MAX_FILENAME 28

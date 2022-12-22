@@ -247,6 +247,7 @@ void print_guess(game_status* game_stats) {
 
 //Prints response to a successful scoreboard command 
 void print_scoreboard(game_status* game_stats) {
+	printf("Received file %s with the scoreboard:\n", game_stats->scoreboard_filename);
 	
 	FILE* file = fopen(game_stats->scoreboard_filename, "r");
 	int c;
@@ -265,6 +266,10 @@ void print_hint(game_status* game_stats, int size) {
 
 //Prints response to a successful state command 
 void print_state(game_status* game_stats) {
+	if (strcmp(game_stats->state_status, "ACT") == EQUAL)
+		printf("Received file %s with the state of the current game:\n", game_stats->state_filename);
+	else
+		printf("Received file %s with the state of the last game played:\n", game_stats->state_filename);
 
 	FILE* file = fopen(game_stats->state_filename, "r");
 	int c;
