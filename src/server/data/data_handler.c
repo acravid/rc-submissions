@@ -193,7 +193,7 @@ void get_hint_filename(char *buffer,char *player_id) {
 }
 
 
-void get_state_filename(char *player_id, char *buffer) {
+void get_state_filename(char *player_id, char *buffer, char* code) {
 
     char *ongoing_game_file_path = NULL;
     char *finished_game_file_path = NULL;
@@ -203,10 +203,12 @@ void get_state_filename(char *player_id, char *buffer) {
 
 
     ongoing_game_file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
+   
     // find ongoing game file path
     sprintf(ongoing_game_file_path,GAMES_DATA_ONGOING,player_id);
     // check if file exists
     if(access(ongoing_game_file_path,F_OK) == SUCESS) { //file exists
+    	strcpy(code, "ACT");
         strcpy(buffer,ongoing_game_file_path);
         printf("filepath %s\n",buffer);
     }  
@@ -214,6 +216,7 @@ void get_state_filename(char *player_id, char *buffer) {
 
         // we can look for it at another directory
         find_last_game(player_id,buffer);
+        strcpy(code, "FIN");
         printf("moved file:\n");
         printf("%s",buffer);
         if(buffer == NULL) {

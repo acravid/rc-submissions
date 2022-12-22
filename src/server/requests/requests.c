@@ -13,6 +13,7 @@ player_info games[PLAYERID_MAX - PLAYERID_MIN];
 bool verbose;
 FILE* word_file;
 FILE* hint_data_file;
+
 //--------------------------------------------------------------
 //                  UDP Module                                  
 //--------------------------------------------------------------
@@ -647,7 +648,8 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 
 		else {
 			char state_filename[MOVED_PLAY_FILE_LENGTH];
-			get_state_filename(playerid,state_filename);
+			char code[3];
+			get_state_filename(playerid, state_filename, code);
 
 			//TODO get_state(int, char*) mete em char* o file name do state do player
 			// se não existir nem ativo nem no historico mete NULL
@@ -661,10 +663,11 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			else {
 				//open and read file
 				printf("o file name antes da chamada é: %s \n",state_filename);
-				state(state_filename, reply, playerid);
+				char res[MAX_STATE_REPLY_SIZE];
+				state(state_filename, res, playerid);
 				
 
-				sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, reply);
+				sprintf(reply, "%s %s %s\n", STATE_REPLY_CODE, code, res);
 			}
 		}
 	}
@@ -774,7 +777,7 @@ void tcp_request_handler(socket_ds* sockets_ds) {
 					w_buffer += ret_tcp_response;
 			}
 			
-			if (strcmp(status, "OK") == EQUAL) {
+			if (strcmp(status, "OK") == EQUAL && strcmp(code, "RHL") == EQUAL) {
 				fread(data, atoi(size) + 1, 1, hint_data_file);
 				fclose(hint_data_file);
 				
