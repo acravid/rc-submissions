@@ -56,6 +56,9 @@ void get_state_filename(char*,char*,char*);
 
 #define DIR_FORWARD "/"
 
+#define STATE_ACTIVE "ACT"
+#define STATE_FIN "FIN"
+
 #define GAME_PLAYER_PLAY "../SCORES/%s/%s"
 #define GAME_WRITE_PLAYER "../GAMES/%s"
 #define GAME_WRITE_PLAYER_FILE "/GAME_%s.txt"
