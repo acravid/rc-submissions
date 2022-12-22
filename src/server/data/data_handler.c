@@ -95,21 +95,14 @@ bool create_scoreboard_file() {
         if(entries[num_entries]->d_name[0] != '.') {
             sprintf(fname,GAME_SCORE_DIR_FILE,entries[num_entries]->d_name);
             reading_file = fopen(fname,READ_MODE);
-            printf("filename: %s\n",fname);
             if(reading_file != NULL) {
-                printf("valid reading file\n");
                 int c = fgetc(reading_file);
 
                 while(c!= EOF && c != '\n') {
                     fputc(c,top_scoreboard_file);
                     c = fgetc(reading_file);
                 }
-                fputc('\n',top_scoreboard_file);
-
-       
-                //fprintf(top_scoreboard_file,"%s\n",line_to_copy);
-                printf("%s",top_scoreboard_file);
-               
+                fputc('\n',top_scoreboard_file);               
                 ++i_file;
             }
         
