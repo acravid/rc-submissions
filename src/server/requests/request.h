@@ -141,6 +141,7 @@ typedef struct {
 	int n_errors;
 	char played_letters[27];
 	int trial;
+	int successful_trials;
 	char last_request[CLIENT_UDP_MAX_REQUEST_SIZE];
 	char last_response[SERVER_UDP_MAX_RESPONSE_SIZE];
 } player_info;

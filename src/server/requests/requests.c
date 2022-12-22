@@ -23,6 +23,7 @@ void init_player_info(input_args args, FILE* file) {
 	
 	for (int i = 0; i < PLAYERID_MAX - PLAYERID_MIN; i++) {
 		games[i].trial = 0;
+		games[i].successful_trials = 0;
 		strcpy(games[i].word, "");
 		strcpy(games[i].last_request, "");
 		strcpy(games[i].last_response, "");
@@ -147,12 +148,12 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 		games[playerid - PLAYERID_MIN].played_letters[len + 1] = '\0';
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
 			sprintf(res, "%s %d", OVR_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
-			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-			games[playerid - PLAYERID_MIN].trial = 0;
 
 			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL, games[playerid - PLAYERID_MIN]);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;		
 		}
 		else
 			sprintf(res, "%s %d", NOK_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
@@ -166,6 +167,7 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 				count += 1;
 			}
 		}
+		games[playerid - PLAYERID_MIN].successful_trials += 1;
 		games[playerid - PLAYERID_MIN].n_letters -= count;
 		int len = strlen(games[playerid - PLAYERID_MIN].played_letters);
 		games[playerid - PLAYERID_MIN].played_letters[len] = letter;
@@ -174,12 +176,12 @@ void play(char *player_id,char *letter_buffer,char letter, char* res) {
 
 
 			sprintf(res, "%s %d", WIN_REPLY_CODE, games[playerid - PLAYERID_MIN].trial - 1);
-			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-			games[playerid - PLAYERID_MIN].trial = 0;
 
 			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
+			rename_and_move_player_file(player_id, TERMINATION_STATUS_WIN, games[playerid - PLAYERID_MIN]);
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;		
 			
 		}
 		else {
@@ -266,25 +268,29 @@ void guess(char *player_id, char* word, char* res) {
 	if (strcmp(games[playerid - PLAYERID_MIN].word, word) != EQUAL) {
 		games[playerid - PLAYERID_MIN].n_errors -= 1;
 		if (games[playerid - PLAYERID_MIN].n_errors < 0) {
-			sprintf(res, "%s", OVR_REPLY_CODE);
-			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-			games[playerid - PLAYERID_MIN].trial = 0;
+			sprintf(res, "%s", OVR_REPLY_CODE);;
+			
 			// NOTE: add comments
 			create_player_game_directory(player_id); 
-			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL);			
+			rename_and_move_player_file(player_id,TERMINATION_STATUS_FAIL, games[playerid - PLAYERID_MIN]);
+			games[playerid - PLAYERID_MIN].successful_trials = 0;
+			games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
+			games[playerid - PLAYERID_MIN].trial = 0;	
 		}
 		else
 			sprintf(res, "%s", NOK_REPLY_CODE);
 	}
 	else {
 		printf("Ganhou\n");
+		games[playerid - PLAYERID_MIN].successful_trials += 1;
 		sprintf(res, "%s", WIN_REPLY_CODE);
-		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
-		games[playerid - PLAYERID_MIN].trial = 0;
 
 		// NOTE: add comments
 		create_player_game_directory(player_id); 
-		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN);			
+		rename_and_move_player_file(player_id,TERMINATION_STATUS_WIN, games[playerid - PLAYERID_MIN]);
+		games[playerid - PLAYERID_MIN].successful_trials = 0;
+		games[playerid - PLAYERID_MIN].trial = 0;
+		games[playerid - PLAYERID_MIN].played_letters[0] = '\0';
 			
 	}
 }
@@ -384,11 +390,12 @@ void quit_request_handler(char *buffer,size_t len,char *reply) {
 			
 			// NOTE: add comments
 			create_player_game_directory(playerid); 
-			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT);	
+			rename_and_move_player_file(playerid,TERMINATION_STATUS_QUIT, games[atoi(playerid) - PLAYERID_MIN]);	
 				
 			
 			games[atoi(playerid) - PLAYERID_MIN].played_letters[0] = '\0';
 			games[atoi(playerid) - PLAYERID_MIN].trial = 0;
+			games[atoi(playerid) - PLAYERID_MIN].successful_trials = 0;
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_request, "");
 			strcpy(games[atoi(playerid) - PLAYERID_MIN].last_response, "");
 			sprintf(reply,"%s %s\n", QUIT_REPLY_CODE, OK_REPLY_CODE);
@@ -529,10 +536,10 @@ void udp_setup(socket_ds* sockets_ds, input_args args) {
 
 void scoreboard(char* reply) {
 	
-	char scoreboard_path_name[strlen(SCOREBOARD_FILE_NAME) + strlen(SCOREBOARD_FILE_PATH)];
+	char scoreboard_path_name[strlen(SCORES_DATA_DIR) + strlen(SCOREBOARD_FILE) + 1];
 	char data[MAX_FILE_SIZE];
 	int size = 0;
-	sprintf(scoreboard_path_name, "%s%s", SCOREBOARD_FILE_PATH, SCOREBOARD_FILE_NAME);
+	sprintf(scoreboard_path_name, "%s/%s", SCORES_DATA_DIR, SCOREBOARD_FILE);
 	FILE* scoreboard_file = fopen(scoreboard_path_name, "r");
 	if (scoreboard_file == NULL)
 		printf("d\n");
@@ -542,7 +549,7 @@ void scoreboard(char* reply) {
 	if (size == 0)
 		sprintf(reply, "%s %s\n", SCOREBOARD_REPLY_CODE, EMPTY_REPLY_CODE);
 	else
-		sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE_NAME, size, data);
+		sprintf(reply, "%s %s %s %d %s", SCOREBOARD_REPLY_CODE, OK_REPLY_CODE, SCOREBOARD_FILE, size, data);
 		
 	fclose(scoreboard_file);
 	printf("c\n");

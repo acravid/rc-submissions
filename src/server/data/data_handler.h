@@ -2,14 +2,13 @@
  * File: data_handler.h
  * Authors: Allan Fernandes 97281, João Vítor 99246
  * Description: header for data_handler.c
- * 
- * 
  */
 
 
 #ifndef DATA_HANDLER_H
 #define DATA_HANDLER_H
 
+#include "../requests/request.h"
 
 /*Function Prototypes*/
 
@@ -20,7 +19,7 @@ void write_game_play(char*,char*,char*);
 void create_game_play_txt(char*,char*); 
 void write_game_play_to_file(char *,char*,char*);
 void create_player_game_directory(char*);
-void rename_and_move_player_file(char*,char);
+void rename_and_move_player_file(char*,char,player_info);
 void get_hint_filename(char*,char*);
 void get_state_filename(char*,char*,char*);
 
@@ -35,7 +34,6 @@ void get_state_filename(char*,char*,char*);
 
 #define GAME_DATA "GAME_DATA"
 #define GAMES_DATA_DIR "GAME_DATA/GAMES"
-#define SCORES_DATA_DIR "GAME_DATA/SCORES"
 #define PLID_DIR "/%s"
 #define GAME_FILE "/%s"
 #define GAMES_DATA_ONGOING GAMES_DATA_DIR GAME_WRITE_PLAYER_FILE

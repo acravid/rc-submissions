@@ -62,7 +62,7 @@ void get_last_accessed_data_and_time(char *file_path, char *buffer) {
 
 
 // TODO: description
-void rename_and_move_player_file(char* player_id,char termination_status) {
+void rename_and_move_player_file(char* player_id,char termination_status, player_info game) {
 
     char *current_file_path = NULL;
     char *moved_name = NULL; 
@@ -112,6 +112,70 @@ void rename_and_move_player_file(char* player_id,char termination_status) {
     free(moved_name);
     free(date_and_time);
     free(termination_and_extension);
+    
+    
+    // SCOREBOARD PART
+    
+    int new_score = 0;
+    char new_line[MAX_LINE_LENGTH];
+    int score = 0;
+    char lines[10][MAX_LINE_LENGTH];
+    
+    // see if win
+    if (termination_status == TERMINATION_STATUS_WIN)
+    	new_score = 100;
+    
+    //make newline with info
+    sprintf(new_line, "%d %s %s %d %d\n", new_score, player_id, game.word, game.successful_trials, game.trial - 1);
+    printf("%s\n", new_line);
+    //TODO make this file if doesnt exist
+    //open file
+  	char scoreboard_file_path[strlen(SCORES_DATA_DIR) + strlen(SCOREBOARD_FILE) + 1];
+  	sprintf(scoreboard_file_path, "%s/%s", SCORES_DATA_DIR, SCOREBOARD_FILE);
+    FILE* scoreboard_file = fopen(scoreboard_file_path, "r+");
+    
+    if (scoreboard_file != NULL)
+    	printf("abre o file\n");
+  	
+  	//TODO fix this
+    int stop = -1;
+    int counter = 0;
+    for (; counter < 10; counter++) {
+    
+    	//reads lines from scoreboard
+    	fgets(lines[counter], MAX_LINE_LENGTH, scoreboard_file);
+    	//read score in that line
+    	sscanf(lines[counter], "%d", &score);
+    	
+    	//set stop to the line you want to change
+    	//if at EOF dont read more lines
+    	if (feof(scoreboard_file)) {
+    		stop = counter;
+    		break;
+    	}
+    	else if (score < new_score && stop == -1)
+    		stop = counter;
+    }
+    
+    //back to the beginning of file
+	rewind(scoreboard_file);
+			
+	int n = 0;
+	for (int i = 0; i < counter; i++) {
+		// change the line to newline
+		if (i == stop) {
+			printf("a\n");
+			fprintf(scoreboard_file, new_line);
+		}
+		//leave the rest the same/lower them
+		else {
+			printf("b\n");
+			fprintf(scoreboard_file, lines[n]);
+			n += 1;
+		}
+    }
+    
+    fclose(scoreboard_file);
 
 }
 
