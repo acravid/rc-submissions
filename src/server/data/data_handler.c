@@ -219,8 +219,8 @@ void rename_and_move_player_file(char *plid,char *termination_status,float n_suc
     // a scoreboard file is created for each game play that ends with success (WIN)
     // the same player can have several score files associated to different game plays
 
-    // best scenario 
-    // the player guess word the word correctly at start 
+    // best case scenario 
+    // the player guess the word correctly at start 
     // score = n_succ / n_trials * 100 ; score = 1/1 * 100  = 100
 
     // worst case scenario 
