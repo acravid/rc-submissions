@@ -162,7 +162,7 @@ void get_hint_filename(char *buffer,char *player_id) {
     word = (char*)malloc(sizeof(char) * MAX_WORD_SIZE_HINT);
     line = (char*)malloc(sizeof(char) * MAX_LINE_LENGTH);
 
-    if(file_path == NULL) {
+    if(file_path == NULL || word == NULL || line == NULL) {
         fprintf(stderr,ERROR_MALLOC_FILE);
     }   
 
@@ -189,6 +189,38 @@ void get_hint_filename(char *buffer,char *player_id) {
     free(file_path);
     free(line);
     free(word);
+
+}
+
+
+void get_state_filename(char *player_id, char *buffer) {
+
+    char *ongoing_game_file_path = NULL;
+    char *finished_game_file_path = NULL;
+
+    // set buffer to null, useful for conditionals
+    memset(buffer,strlen(buffer),'\0');
+
+
+    ongoing_game_file_path = (char*)malloc(sizeof(char) * PATH_ONGOING_GAME_LENGTH);
+    // find ongoing game file path
+    sprintf(ongoing_game_file_path,GAMES_DATA_ONGOING,player_id);
+    // check if file exists
+    if(access(ongoing_game_file_path,F_OK) == SUCESS) { //file exists
+        strcpy(buffer,ongoing_game_file_path);
+        printf("filepath %s\n",buffer);
+    }  
+    else {
+
+        // we can look for it at another directory
+        find_last_game(player_id,buffer);
+        printf("moved file:\n");
+        printf("%s",buffer);
+        if(buffer == NULL) {
+            printf("to think\n");
+        }
+
+    }
 
 }
 
@@ -231,24 +263,27 @@ void write_game_play_to_file(char * player_id,char *info,char *type) {
 
 // find the last played game given a player id and stores the 
 // resulting filename in a variable pointed by fname.
-int find_last_game(char *plid,char *fname) {
+void find_last_game(char *plid,char *fname) {
 
     struct dirent **filelist;
     int n_entries, found;
-    char dirname[DIR_NAME_LENGTH];
+    char *dir_path = NULL;
 
-
-    sprintf(dirname,GAME_WRITE_PLAYER,plid);
-    n_entries = scandir(dirname,&filelist,0,alphasort);
+    dir_path = (char*)malloc(sizeof(char) * PATH_PLAYER_GAME_DIR_LENGTH);
+    sprintf(dir_path,GAMES_DATA_PLAYER_DIR,plid);
+   
+    n_entries = scandir(dir_path,&filelist,0,alphasort);
     found = 0;
 
     if(n_entries <= 0) {
-        return 0; 
+        // does nothing
+        printf("does nothing");
     } 
     else {
         while(n_entries--) {
+
             if(filelist[n_entries]->d_name[0] != '.') {
-                sprintf(fname,GAME_PLAYER_PLAY,plid,filelist[n_entries]->d_name);
+                sprintf(fname,GAME_DATA_PLAYER_DIR_AND_FILE,plid,filelist[n_entries]->d_name);
                 found = 1;
             }
             free(filelist[n_entries]);
@@ -258,6 +293,7 @@ int find_last_game(char *plid,char *fname) {
       
         }
     }
-    return found;
+
+    free(dir_path);
 
 }

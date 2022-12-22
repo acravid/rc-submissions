@@ -32,4 +32,4 @@ server/GS.o: server/requests/request.h server/GS.c server/GS.h
 
 
 clean:
-	rm -r client/*.o client/commands/*.o server/*.o server/requests/*.o server/data/*.o player GS GAME_DATA/
+	rm -r client/*.o client/commands/*.o server/*.o server/requests/*.o server/data/*.o player GS GAME_DATA/ client/RECEIVED_FILES

@@ -29,7 +29,7 @@
 #define SCORES_DIR "GAME_DATA/SCORES"
 
 /*Sockets: */
-#define SOCKET_TIMEOUT 5
+#define SOCKET_TIMEOUT 30
 #define MAX_TIMEOUTS 2
 
 /*Others: */

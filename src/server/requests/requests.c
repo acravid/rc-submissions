@@ -610,20 +610,23 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 	}
 }
 
-void state(char* state_name, char* reply, char* playerid) {
-	char state_path_name[strlen(state_name) + strlen(STATE_FILE_PATH)];
+void state(char* state_path,char* reply,char* playerid) {
+
 	char data[MAX_FILE_SIZE];
 	int size = 0;
+
+	printf("%s o caminho novamente: %s\n",state_path);
 	
-	//TODO definir STATE_FILE_PATH
-	sprintf(state_path_name, "%s%s", STATE_FILE_PATH, state_name);
-	FILE* state_file = fopen(state_path_name, "r");
+	FILE* state_file = fopen(state_path,"r");
+
 	
 	for (char c = fgetc(state_file); c != EOF; c = fgetc(state_file), size += 1)
 		data[size] = c;
 	
+	memset(reply,sizeof(reply), '\0');
 	sprintf(reply, "STATE_%s.txt %d %s", playerid, size, data);
-	fclose(state_file);
+	printf("resposta: %s\n",reply);
+	fclose(state_file); 
 }
 
 void state_request_handler(char* buffer, size_t len, char *reply) {
@@ -644,17 +647,23 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
 
 		else {
-			char state_file_name[MAX_FILENAME];
-			char reply[MAX_STATE_REPLY_SIZE];
+			char state_filename[MOVED_PLAY_FILE_LENGTH];
+			get_state_filename(playerid,state_filename);
+
 			//TODO get_state(int, char*) mete em char* o file name do state do player
 			// se não existir nem ativo nem no historico mete NULL
 			//get_state(atoi(playerid), state_file_name);
 
-			if (state_file_name == NULL) 
+			if (state_filename == NULL) {
+				printf("state_file_name n existe sad :( \n");
 				sprintf(reply,"%s %s\n", STATE_REPLY_CODE, NOK_REPLY_CODE);
+
+			}
 			else {
 				//open and read file
-				state(state_file_name, reply, playerid);
+				printf("o file name antes da chamada é: %s \n",state_filename);
+				state(state_filename, reply, playerid);
+				
 
 				sprintf(reply, "%s %s %s\n", HINT_REPLY_CODE, OK_REPLY_CODE, reply);
 			}
@@ -683,7 +692,7 @@ void tcp_request_handler(socket_ds* sockets_ds) {
 
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);;
-    ssize_t ret_udp_request, ret_udp_response;
+    ssize_t ret_tcp_request, ret_tcp_response;
     size_t w_buffer;
     int timeout_count;
     char request[CLIENT_TCP_MAX_REQUEST_SIZE];
@@ -714,45 +723,46 @@ void tcp_request_handler(socket_ds* sockets_ds) {
             }
 			printf("Cria child\n");
             
-            ret_udp_request = ERROR;
+            ret_tcp_request = ERROR;
             timeout_count = 0;
-            while (ret_udp_request == ERROR) {
-				ret_udp_request = read(newfd, request, CLIENT_TCP_MAX_REQUEST_SIZE);
-				if (ret_udp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
+            while (ret_tcp_request == ERROR) {
+				ret_tcp_request = read(newfd, request, CLIENT_TCP_MAX_REQUEST_SIZE);
+				if (ret_tcp_request == ERROR && timeout_count == MAX_TIMEOUTS) {
 					fprintf(stderr, ERROR_READ);
                 	close(newfd);
 					exit(EXIT_FAILURE);	
 				}
-				else if (ret_udp_request == ERROR) {
+				else if (ret_tcp_request == ERROR) {
 					printf(TIMEOUT_RECV_TCP);
 					timeout_count += 1;
 				}
 			}
             
 			//make request a string
-			request[ret_udp_request] = '\0';
+			request[ret_tcp_request] = '\0';
 			printf("Le: %s", request);
             // process request buffer and handle to corresponding functions
-			tcp_select_requests_handler(request, ret_udp_request, reply);
+			tcp_select_requests_handler(request, ret_tcp_request, reply);
 			printf("Tem a resposta: %s\n", reply);
 			size_t len = strlen(reply);
-			ret_udp_request = ERROR;
+			printf("o tamanho é %d", len);
+			ret_tcp_request = ERROR;
             timeout_count = 0;
 			w_buffer = 0;
 			//read status filename filesize
-			while (ret_udp_response == ERROR || w_buffer != len) {
-				ret_udp_response = write(newfd, reply, len - w_buffer);
-				if (ret_udp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
+			while (ret_tcp_response == ERROR || w_buffer != len) {
+				ret_tcp_response = write(newfd, reply, len - w_buffer);
+				if (ret_tcp_response == ERROR && timeout_count == MAX_TIMEOUTS) {
 					fprintf(stderr, ERROR_WRITE);
                 	close(newfd);
 					exit(EXIT_FAILURE);
 				}
-				else if (ret_udp_response == ERROR) {
+				else if (ret_tcp_response == ERROR) {
 					printf(TIMEOUT_SEND_TCP);
 					timeout_count += 1;
 				}
 				else
-					w_buffer += ret_udp_response;
+					w_buffer += ret_tcp_response;
 			}
 			
 			printf("Acaba\n");

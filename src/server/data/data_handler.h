@@ -14,14 +14,15 @@
 /*Function Prototypes*/
 
 int select_random_word_hint(char*,char*,int);
-int find_last_game(char*,char*);
 
+void find_last_game(char*,char*);
 void write_game_play(char*,char*,char*);
 void create_game_play_txt(char*,char*); 
 void write_game_play_to_file(char *,char*,char*);
 void create_player_game_directory(char*);
 void rename_and_move_player_file(char*,char);
 void get_hint_filename(char*,char*);
+void get_state_filename(char*,char*);
 
 
 
@@ -36,8 +37,11 @@ void get_hint_filename(char*,char*);
 #define GAMES_DATA_DIR "GAME_DATA/GAMES"
 #define SCORES_DATA_DIR "GAME_DATA/SCORES"
 #define PLID_DIR "/%s"
+#define GAME_FILE "/%s"
 #define GAMES_DATA_ONGOING GAMES_DATA_DIR GAME_WRITE_PLAYER_FILE
 #define GAMES_DATA_PLAYER_DIR GAMES_DATA_DIR PLID_DIR
+#define GAME_DATA_PLAYER_DIR_AND_FILE GAMES_DATA_PLAYER_DIR GAME_FILE
+
 
 
 #define PLAY_TRIAL_CODE "T "
@@ -79,6 +83,9 @@ void get_hint_filename(char*,char*);
 #define FILE_NAME_MAX_LENGTH 50
 #define NUMBER_OF_LINES_GUESS_FILE 26
 #define TEXT_FILE_LENGTH 64
+
+// GAME_DATA/GAMES/GAME_6.txt
+// GAME_DATA/
 
 #define MAX_WORD_SIZE_HINT 31 
 
