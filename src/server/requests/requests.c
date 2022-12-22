@@ -610,14 +610,20 @@ void hint_request_handler(char* buffer, size_t len, char* reply) {
 	}
 }
 
-void state(char* state_path,char* reply,char* playerid) {
+void state(char* state_path,char* reply,char* playerid,char *code) {
 
 	char data[MAX_FILE_SIZE];
 	int size = 0;
 
-	printf("%s o caminho novamente: %s\n",state_path);
 	
 	FILE* state_file = fopen(state_path,"r");
+
+	if(strcmp(code,STATE_ACTIVE) == SUCESS) {
+		char *line_to_ignore = NULL;
+		line_to_ignore = (char*)malloc(sizeof(char) * MAX_LINE_LENGTH);
+		fgets(line_to_ignore,MAX_LINE_LENGTH,state_file);
+		free(line_to_ignore);
+	}
 
 	
 	for (char c = fgetc(state_file); c != EOF; c = fgetc(state_file), size += 1)
@@ -625,9 +631,10 @@ void state(char* state_path,char* reply,char* playerid) {
 	
 	memset(reply,sizeof(reply), '\0');
 	sprintf(reply, "STATE_%s.txt %d %s", playerid, size, data);
-	printf("resposta: %s\n",reply);
 	fclose(state_file); 
+
 }
+
 
 void state_request_handler(char* buffer, size_t len, char *reply) {
 	//check if message sent has the right size
@@ -664,7 +671,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 				//open and read file
 				printf("o file name antes da chamada é: %s \n",state_filename);
 				char res[MAX_STATE_REPLY_SIZE];
-				state(state_filename, res, playerid);
+				state(state_filename, res, playerid,code);
 				
 
 				sprintf(reply, "%s %s %s\n", STATE_REPLY_CODE, code, res);

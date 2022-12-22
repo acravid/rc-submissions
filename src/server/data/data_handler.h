@@ -22,7 +22,7 @@ void write_game_play_to_file(char *,char*,char*);
 void create_player_game_directory(char*);
 void rename_and_move_player_file(char*,char);
 void get_hint_filename(char*,char*);
-void get_state_filename(char*,char*);
+void get_state_filename(char*,char*,char*);
 
 
 
@@ -57,6 +57,9 @@ void get_state_filename(char*,char*);
 #define TERMINATION_STATUS_QUIT 'Q'
 
 #define DIR_FORWARD "/"
+
+#define STATE_ACTIVE "ACT"
+#define STATE_FIN "FIN"
 
 #define GAME_PLAYER_PLAY "../SCORES/%s/%s"
 #define GAME_WRITE_PLAYER "../GAMES/%s"
