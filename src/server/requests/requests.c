@@ -546,7 +546,7 @@ void scoreboard(char*);
 void hint_request_handler(char*, size_t, char*);
 void hint(char*, char*);
 void state_request_handler(char*, size_t, char*);
-void state(char*, char*, char*, char*);
+void state(char*, char*, int, char*);
 
 void cleanup_connection(int, struct addrinfo*);
 
@@ -834,6 +834,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 		//read player id
 		char playerid[PLAYERID_SIZE + 1];
 		sscanf(&buffer[CODE_SIZE], "%s", playerid);
+		int plid = atoi(playerid);
 
 		//check for space after code and if message ends with \n
 		if (buffer[CODE_SIZE] != ' ' || buffer[CODE_SIZE + 1 + PLAYERID_SIZE] != '\n') 
@@ -854,7 +855,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 			//open and read file
 			else {
 				char res[MAX_STATE_REPLY_SIZE];
-				state(state_filename, res, playerid,code);
+				state(state_filename, res, plid,code);
 				
 				sprintf(reply, "%s %s %s\n", STATE_REPLY_CODE, code, res);
 			}
@@ -864,7 +865,7 @@ void state_request_handler(char* buffer, size_t len, char *reply) {
 
 
 //Sends the state file data
-void state(char* state_path,char* reply,char* playerid,char *code) {
+void state(char* state_path,char* reply,int playerid,char *code) {
 
 	char data[MAX_FILE_SIZE];
 	int size = 0;
@@ -886,7 +887,7 @@ void state(char* state_path,char* reply,char* playerid,char *code) {
 		data[size] = c;
 	
 	memset(reply,sizeof(reply), '\0');
-	sprintf(reply, "STATE_%s.txt %d %s", playerid, size, data);
+	sprintf(reply, "STATE_%d.txt %d %s", playerid, size, data);
 	
 	fclose(state_file); 
 }
